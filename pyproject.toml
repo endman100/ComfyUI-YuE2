@@ -1,0 +1,34 @@
+[project]
+name = "yue2"
+version = "0.1.0"
+description = "Composable ComfyUI V3 nodes for YuE2 music generation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "endman100" }]
+dynamic = ["dependencies"]
+classifiers = [
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: GPU :: NVIDIA CUDA",
+]
+
+[project.urls]
+Repository = "https://github.com/endman100/ComfyUI-YuE2"
+Documentation = "https://github.com/endman100/ComfyUI-YuE2#readme"
+"Bug Tracker" = "https://github.com/endman100/ComfyUI-YuE2/issues"
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.comfy]
+PublisherId = "endman100"
+DisplayName = "YuE2"
+requires-comfyui = ">=0.35.0"
+
+[tool.ruff]
+target-version = "py310"
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib --confcutdir=tests"
+testpaths = ["tests"]

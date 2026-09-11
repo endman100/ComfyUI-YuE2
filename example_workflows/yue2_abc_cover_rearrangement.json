@@ -1,0 +1,768 @@
+{
+  "id": "c4b1f267-cbfd-4082-a57e-9e746b3e8233",
+  "revision": 0,
+  "last_node_id": 12,
+  "last_link_id": 15,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "YuE2ModelLoader",
+      "pos": [
+        0,
+        0
+      ],
+      "size": [
+        350,
+        390
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "YuE2 runtime",
+          "type": "YUE2_RUNTIME",
+          "links": [
+            1,
+            2,
+            3
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "YuE2ModelLoader"
+      },
+      "widgets_values": [
+        "hugging_face",
+        "m-a-p/YuE2-3B",
+        "m-a-p/YuE2-Vae",
+        "bfloat16",
+        "auto",
+        24,
+        true,
+        false,
+        true,
+        "",
+        "",
+        ""
+      ],
+      "widgets_values_named": {
+        "source": "hugging_face",
+        "model": "m-a-p/YuE2-3B",
+        "vae": "m-a-p/YuE2-Vae",
+        "precision": "bfloat16",
+        "device": "auto",
+        "memory_budget_gib": 24,
+        "offload_ar": true,
+        "local_files_only": false,
+        "verify_hashes": true,
+        "revision": "",
+        "vae_revision": "",
+        "cache_dir": ""
+      }
+    },
+    {
+      "id": 2,
+      "type": "YuE2PlanScore",
+      "pos": [
+        410,
+        0
+      ],
+      "size": [
+        390,
+        470
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "runtime",
+          "type": "YUE2_RUNTIME",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "plan",
+          "type": "YUE2_PLAN",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "ABC score",
+          "type": "STRING",
+          "links": [
+            15
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "YuE2PlanScore"
+      },
+      "widgets_values": [
+        "cinematic orchestral rearrangement, expressive vocal, sweeping strings and piano",
+        "[Verse]\nShine through the night",
+        "full",
+        123,
+        "fixed",
+        -1,
+        "X:1\nT:Moonlit Theme\nM:4/4\nL:1/8\nQ:1/4=96\nK:C\n\"C\" C2 E2 G2 c2 | \"Am\" A2 c2 e2 a2 | \"F\" F2 A2 c2 f2 | \"G\" G2 B2 d2 g2 |",
+        0.7,
+        0.9,
+        30,
+        1.005,
+        100,
+        32,
+        512
+      ],
+      "widgets_values_named": {
+        "style": "cinematic orchestral rearrangement, expressive vocal, sweeping strings and piano",
+        "lyrics": "[Verse]\nShine through the night",
+        "cot": "full",
+        "seed": 123,
+        "control_after_generate": "fixed",
+        "cfg_scale": -1,
+        "abc": "X:1\nT:Moonlit Theme\nM:4/4\nL:1/8\nQ:1/4=96\nK:C\n\"C\" C2 E2 G2 c2 | \"Am\" A2 c2 e2 a2 | \"F\" F2 A2 c2 f2 | \"G\" G2 B2 d2 g2 |",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "top_k": 30,
+        "repetition_penalty": 1.005,
+        "penalty_window": 100,
+        "min_tokens": 32,
+        "max_tokens": 512
+      }
+    },
+    {
+      "id": 3,
+      "type": "YuE2GenerateSemantic",
+      "pos": [
+        860,
+        20
+      ],
+      "size": [
+        350,
+        330
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "runtime",
+          "type": "YUE2_RUNTIME",
+          "link": 2
+        },
+        {
+          "name": "plan",
+          "type": "YUE2_PLAN",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "links": [
+            6
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "semantic",
+          "type": "YUE2_SEMANTIC",
+          "links": [
+            7
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "YuE2GenerateSemantic"
+      },
+      "widgets_values": [
+        1,
+        0.95,
+        100,
+        1.2,
+        50,
+        32,
+        400
+      ],
+      "widgets_values_named": {
+        "temperature": 1,
+        "top_p": 0.95,
+        "top_k": 100,
+        "repetition_penalty": 1.2,
+        "penalty_window": 50,
+        "min_tokens": 32,
+        "max_tokens": 400
+      }
+    },
+    {
+      "id": 4,
+      "type": "YuE2EmptyLatent",
+      "pos": [
+        1270,
+        330
+      ],
+      "size": [
+        260,
+        60
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "semantic",
+          "type": "YUE2_SEMANTIC",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            12
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "YuE2EmptyLatent"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "RandomNoise",
+      "pos": [
+        900,
+        430
+      ],
+      "size": [
+        260,
+        82
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "NOISE",
+          "type": "NOISE",
+          "links": [
+            8
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RandomNoise",
+        "cnr_id": "comfy-core",
+        "ver": "0.35.0"
+      },
+      "widgets_values": [
+        123,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "noise_seed": 123,
+        "control_after_generate": "fixed"
+      }
+    },
+    {
+      "id": 6,
+      "type": "BasicGuider",
+      "pos": [
+        1270,
+        50
+      ],
+      "size": [
+        260,
+        80
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 4
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "name": "GUIDER",
+          "type": "GUIDER",
+          "links": [
+            9
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BasicGuider",
+        "cnr_id": "comfy-core",
+        "ver": "0.35.0"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 7,
+      "type": "YuE2ExplicitMidpoint",
+      "pos": [
+        1270,
+        450
+      ],
+      "size": [
+        270,
+        50
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "sampler",
+          "type": "SAMPLER",
+          "links": [
+            10
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "YuE2ExplicitMidpoint"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 8,
+      "type": "YuE2LinearSchedule",
+      "pos": [
+        1270,
+        550
+      ],
+      "size": [
+        270,
+        80
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "sigmas",
+          "type": "SIGMAS",
+          "links": [
+            11
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "YuE2LinearSchedule"
+      },
+      "widgets_values": [
+        32
+      ],
+      "widgets_values_named": {
+        "steps": 32
+      }
+    },
+    {
+      "id": 9,
+      "type": "SamplerCustomAdvanced",
+      "pos": [
+        1600,
+        120
+      ],
+      "size": [
+        330,
+        260
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise",
+          "type": "NOISE",
+          "link": 8
+        },
+        {
+          "name": "guider",
+          "type": "GUIDER",
+          "link": 9
+        },
+        {
+          "name": "sampler",
+          "type": "SAMPLER",
+          "link": 10
+        },
+        {
+          "name": "sigmas",
+          "type": "SIGMAS",
+          "link": 11
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "LATENT",
+          "links": [
+            13
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "denoised_output",
+          "type": "LATENT",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SamplerCustomAdvanced",
+        "cnr_id": "comfy-core",
+        "ver": "0.35.0"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 10,
+      "type": "YuE2Decode",
+      "pos": [
+        1990,
+        130
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "runtime",
+          "type": "YUE2_RUNTIME",
+          "link": 3
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 13
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            14
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "YuE2Decode"
+      },
+      "widgets_values": [
+        false
+      ],
+      "widgets_values_named": {
+        "full_decode": false
+      }
+    },
+    {
+      "id": 11,
+      "type": "SaveAudioAdvanced",
+      "pos": [
+        2330,
+        130
+      ],
+      "size": [
+        300,
+        150
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveAudioAdvanced",
+        "cnr_id": "comfy-core",
+        "ver": "0.35.0"
+      },
+      "widgets_values": [
+        "audio/yue2_abc_rearrangement",
+        "flac"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "audio/yue2_abc_rearrangement",
+        "format": "flac"
+      }
+    },
+    {
+      "id": 12,
+      "type": "PreviewAny",
+      "pos": [
+        410,
+        500
+      ],
+      "size": [
+        390,
+        180
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 15
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny",
+        "cnr_id": "comfy-core",
+        "ver": "0.35.0"
+      },
+      "widgets_values": [
+        null,
+        null,
+        null
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      1,
+      2,
+      0,
+      "YUE2_RUNTIME"
+    ],
+    [
+      2,
+      1,
+      1,
+      3,
+      0,
+      "YUE2_RUNTIME"
+    ],
+    [
+      3,
+      1,
+      1,
+      10,
+      0,
+      "YUE2_RUNTIME"
+    ],
+    [
+      4,
+      1,
+      0,
+      6,
+      0,
+      "MODEL"
+    ],
+    [
+      5,
+      2,
+      0,
+      3,
+      1,
+      "YUE2_PLAN"
+    ],
+    [
+      6,
+      3,
+      0,
+      6,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      7,
+      3,
+      1,
+      4,
+      0,
+      "YUE2_SEMANTIC"
+    ],
+    [
+      8,
+      5,
+      0,
+      9,
+      0,
+      "NOISE"
+    ],
+    [
+      9,
+      6,
+      0,
+      9,
+      1,
+      "GUIDER"
+    ],
+    [
+      10,
+      7,
+      0,
+      9,
+      2,
+      "SAMPLER"
+    ],
+    [
+      11,
+      8,
+      0,
+      9,
+      3,
+      "SIGMAS"
+    ],
+    [
+      12,
+      4,
+      0,
+      9,
+      4,
+      "LATENT"
+    ],
+    [
+      13,
+      9,
+      0,
+      10,
+      1,
+      "LATENT"
+    ],
+    [
+      14,
+      10,
+      0,
+      11,
+      0,
+      "AUDIO"
+    ],
+    [
+      15,
+      2,
+      1,
+      12,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "Supplied ABC cover / rearrangement — BF16",
+      "bounding": [
+        -30,
+        -50,
+        850,
+        750
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "Native ComfyUI custom sampling chain",
+      "bounding": [
+        840,
+        -30,
+        1120,
+        700
+      ],
+      "color": "#8b6f47",
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "Decode and save",
+      "bounding": [
+        1970,
+        80,
+        700,
+        260
+      ],
+      "color": "#4a7c59",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.78,
+      "offset": [
+        180,
+        220
+      ]
+    },
+    "frontendVersion": "1.51.10",
+    "node_versions": {
+      "comfy-core": "0.35.0",
+      "ComfyUI-YuE2": "local"
+    }
+  },
+  "version": 0.4
+}

@@ -1,0 +1,51 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install validation tools
+        run: python -m pip install ruff==0.13.0
+
+      - name: Lint and check formatting
+        run: |
+          ruff check __init__.py install.py nodes.py runtime.py tests
+          ruff format --check __init__.py install.py nodes.py runtime.py tests
+
+      - name: Compile Python sources
+        run: python -m compileall -q __init__.py install.py nodes.py runtime.py tests
+
+      - name: Validate metadata and workflows
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import tomllib
+
+          metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          assert metadata["project"]["name"] == "yue2"
+          assert metadata["tool"]["comfy"]["PublisherId"] == "endman100"
+
+          workflows = sorted(Path("example_workflows").glob("*.json"))
+          assert len(workflows) == 4
+          for path in workflows:
+              workflow = json.loads(path.read_text(encoding="utf-8"))
+              assert workflow["version"] == 0.4
+              assert workflow["nodes"]
+              assert workflow["links"]
+          PY
