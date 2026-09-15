@@ -17,10 +17,10 @@ YuE2 editing is score-level regeneration. This integration does not claim wavefo
 
 ## Listen to generated samples
 
-These players contain the **ComfyUI graph output**. In all five matched cases, the official pipeline WAV and ComfyUI WAV are sample-identical; the linked difference WAV is silence. MP4 is used only to provide GitHub's inline player—the parity metrics use the original 48 kHz stereo WAV arrays.
+Expand a case, press play, and unmute the speaker once if Chrome starts muted. Each player contains the **ComfyUI graph output**, transcoded from WAV to AAC-in-MP4 only so GitHub renders inline playback. In all five matched cases, the official pipeline WAV and ComfyUI WAV are sample-identical; parity metrics use the original 48 kHz stereo WAV arrays, not the listening transcode.
 
 <details open>
-<summary><strong>01 · Pop vocal · cot=off · seed 123</strong></summary>
+<summary><strong>▶ 01 · Pop vocal · cot=off · seed 123</strong></summary>
 
 https://github.com/user-attachments/assets/0f4e96ba-9da5-406c-a2f6-6693086bdbab
 
@@ -29,7 +29,7 @@ https://github.com/user-attachments/assets/0f4e96ba-9da5-406c-a2f6-6693086bdbab
 </details>
 
 <details>
-<summary><strong>02 · Electronic instrumental · seed 2026</strong></summary>
+<summary><strong>▶ 02 · Electronic instrumental · seed 2026</strong></summary>
 
 https://github.com/user-attachments/assets/53aa49fb-9e69-402e-bffc-84991615f02d
 
@@ -38,7 +38,7 @@ https://github.com/user-attachments/assets/53aa49fb-9e69-402e-bffc-84991615f02d
 </details>
 
 <details>
-<summary><strong>03 · Rock vocal · high-temperature semantic sampling · seed 987654</strong></summary>
+<summary><strong>▶ 03 · Rock vocal · high-temperature semantic sampling · seed 987654</strong></summary>
 
 https://github.com/user-attachments/assets/b6bd61dc-2c91-45de-9089-0bdd89cd3ac9
 
@@ -47,7 +47,7 @@ https://github.com/user-attachments/assets/b6bd61dc-2c91-45de-9089-0bdd89cd3ac9
 </details>
 
 <details>
-<summary><strong>04 · Automatically planned full ABC score · seed 42</strong></summary>
+<summary><strong>▶ 04 · Automatically planned full ABC score · seed 42</strong></summary>
 
 https://github.com/user-attachments/assets/be9e411c-2714-4eba-8d24-8b98f3fb1d89
 
@@ -56,7 +56,7 @@ https://github.com/user-attachments/assets/be9e411c-2714-4eba-8d24-8b98f3fb1d89
 </details>
 
 <details>
-<summary><strong>05 · Supplied ABC melody rearrangement · seed 314159</strong></summary>
+<summary><strong>▶ 05 · Supplied ABC melody rearrangement · seed 314159</strong></summary>
 
 https://github.com/user-attachments/assets/0f2b2003-18bf-4d72-9816-aa50dd07395b
 
