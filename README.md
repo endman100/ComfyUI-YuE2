@@ -1,3 +1,23 @@
+
+
+https://github.com/user-attachments/assets/0f2b2003-18bf-4d72-9816-aa50dd07395b
+
+
+
+https://github.com/user-attachments/assets/be9e411c-2714-4eba-8d24-8b98f3fb1d89
+
+
+
+https://github.com/user-attachments/assets/b6bd61dc-2c91-45de-9089-0bdd89cd3ac9
+
+
+
+https://github.com/user-attachments/assets/53aa49fb-9e69-402e-bffc-84991615f02d
+
+
+
+https://github.com/user-attachments/assets/0f4e96ba-9da5-406c-a2f6-6693086bdbab
+
 # ComfyUI-YuE2
 
 Composable ComfyUI V3 nodes for [YuE2-3B](https://huggingface.co/m-a-p/YuE2-3B), a lyrics-and-style-to-song model with editable symbolic score planning. The package keeps YuE2-specific planning, autoregressive semantic generation, flow sampling, and audio decoding behind eight nodes while reusing ComfyUI's native `MODEL`, `CONDITIONING`, `LATENT`, `SAMPLER`, `SIGMAS`, `AUDIO`, guider, noise, sampling executor, preview, and save contracts.
