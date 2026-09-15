@@ -27,12 +27,6 @@ SPEC.loader.exec_module(PACKAGE)
 nodes = sys.modules["comfyui_yue2.nodes"]
 runtime = sys.modules["comfyui_yue2.runtime"]
 
-INSTALL_SPEC = importlib.util.spec_from_file_location(
-    "comfyui_yue2_install", NODE_DIR / "install.py"
-)
-installer = importlib.util.module_from_spec(INSTALL_SPEC)
-INSTALL_SPEC.loader.exec_module(installer)
-
 
 def loader_values(**overrides):
     values = {
@@ -683,21 +677,3 @@ def test_decoder_offloads_main_model_and_uses_comfy_model_management(
     assert unloaded == [pipe._model_patcher]
     assert pipe._vae_patcher.model.module is vae
     assert loaded == [([pipe._vae_patcher], {"force_full_load": True})]
-
-
-def test_compat_wheel_metadata_relaxes_upstream_environment_pins():
-    metadata = """Name: yue2-infer
-Version: 0.1.5
-Requires-Dist: torch==2.10.0
-Requires-Dist: transformers==4.57.6
-Requires-Dist: huggingface-hub==0.36.2
-Requires-Dist: safetensors==0.7.0
-Requires-Dist: tiktoken==0.12.0
-Requires-Dist: numpy==2.2.6
-Requires-Dist: soundfile==0.13.1
-Requires-Dist: accelerate==1.13.0
-"""
-    rewritten = installer._rewrite_metadata(metadata, "0.1.5", "0.1.5.post1")
-    assert "Name: yue2-infer-comfyui" in rewritten
-    assert "torch>=2.10.0" in rewritten
-    assert "torch==2.10.0" not in rewritten

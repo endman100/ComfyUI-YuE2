@@ -28,7 +28,11 @@ sys.modules[spec.name] = package
 spec.loader.exec_module(package)
 nodes = sys.modules[f"{spec.name}.nodes"]
 
-from comfy_extras.nodes_custom_sampler import BasicGuider, RandomNoise, SamplerCustomAdvanced  # noqa: E402
+from comfy_extras.nodes_custom_sampler import (  # noqa: E402
+    BasicGuider,
+    RandomNoise,
+    SamplerCustomAdvanced,
+)
 from yue2.protocol import Sampling  # noqa: E402
 
 
@@ -60,8 +64,13 @@ CASES = [
         "seed": 2026,
         "abc": "",
         "semantic": Sampling(
-            temperature=0.8, top_p=0.9, top_k=50, repetition_penalty=1.1,
-            penalty_window=64, min_tokens=32, max_tokens=160,
+            temperature=0.8,
+            top_p=0.9,
+            top_k=50,
+            repetition_penalty=1.1,
+            penalty_window=64,
+            min_tokens=32,
+            max_tokens=160,
         ),
         "full_decode": False,
     },
@@ -73,8 +82,13 @@ CASES = [
         "seed": 987654,
         "abc": "",
         "semantic": Sampling(
-            temperature=1.2, top_p=0.98, top_k=200, repetition_penalty=1.15,
-            penalty_window=50, min_tokens=32, max_tokens=128,
+            temperature=1.2,
+            top_p=0.98,
+            top_k=200,
+            repetition_penalty=1.15,
+            penalty_window=50,
+            min_tokens=32,
+            max_tokens=128,
         ),
         "full_decode": False,
     },
@@ -86,8 +100,13 @@ CASES = [
         "seed": 42,
         "abc": "",
         "abc_sampling": Sampling(
-            temperature=0.7, top_p=0.9, top_k=30, repetition_penalty=1.005,
-            penalty_window=100, min_tokens=32, max_tokens=128,
+            temperature=0.7,
+            top_p=0.9,
+            top_k=30,
+            repetition_penalty=1.005,
+            penalty_window=100,
+            min_tokens=32,
+            max_tokens=128,
         ),
         "semantic": Sampling(min_tokens=32, max_tokens=128),
         "full_decode": False,
@@ -100,8 +119,13 @@ CASES = [
         "seed": 314159,
         "abc": ABC_SCORE,
         "semantic": Sampling(
-            temperature=0.9, top_p=0.92, top_k=80, repetition_penalty=1.2,
-            penalty_window=50, min_tokens=32, max_tokens=96,
+            temperature=0.9,
+            top_p=0.92,
+            top_k=80,
+            repetition_penalty=1.2,
+            penalty_window=50,
+            min_tokens=32,
+            max_tokens=96,
         ),
         "full_decode": True,
     },
@@ -131,18 +155,34 @@ def sampling_values(sampling):
 def node_plan(runtime, case):
     sampling = case.get("abc_sampling", Sampling())
     return nodes.YuE2PlanScore.execute(
-        runtime, case["style"], case["lyrics"], case["cot"], case["seed"],
-        -1.0, case["abc"], sampling.temperature, sampling.top_p, sampling.top_k,
-        sampling.repetition_penalty, sampling.penalty_window,
-        sampling.min_tokens, sampling.max_tokens,
+        runtime,
+        case["style"],
+        case["lyrics"],
+        case["cot"],
+        case["seed"],
+        -1.0,
+        case["abc"],
+        sampling.temperature,
+        sampling.top_p,
+        sampling.top_k,
+        sampling.repetition_penalty,
+        sampling.penalty_window,
+        sampling.min_tokens,
+        sampling.max_tokens,
     ).result[0]
 
 
 def node_semantic(runtime, plan, sampling):
     return nodes.YuE2GenerateSemantic.execute(
-        runtime, plan, sampling.temperature, sampling.top_p, sampling.top_k,
-        sampling.repetition_penalty, sampling.penalty_window,
-        sampling.min_tokens, sampling.max_tokens,
+        runtime,
+        plan,
+        sampling.temperature,
+        sampling.top_p,
+        sampling.top_k,
+        sampling.repetition_penalty,
+        sampling.penalty_window,
+        sampling.min_tokens,
+        sampling.max_tokens,
     ).result
 
 
@@ -170,7 +210,9 @@ def metrics(reference, actual):
         "max_abs_error": float(np.max(np.abs(difference))),
         "mean_abs_error": float(np.mean(np.abs(difference))),
         "rmse": math.sqrt(noise_power),
-        "snr_db": None if noise_power == 0 else 10 * math.log10(signal_power / noise_power),
+        "snr_db": None
+        if noise_power == 0
+        else 10 * math.log10(signal_power / noise_power),
     }
 
 
@@ -182,7 +224,9 @@ def run_case(model, runtime, case, output_dir):
     pipe = runtime.pipeline()
 
     official_latents = pipe.synthesize(semantic)
-    official_latents = torch.as_tensor(official_latents, dtype=torch.float32).T.unsqueeze(0)
+    official_latents = torch.as_tensor(
+        official_latents, dtype=torch.float32
+    ).T.unsqueeze(0)
 
     empty_latent = nodes.YuE2EmptyLatent.execute(conditioning)[0]
     sampled = SamplerCustomAdvanced.execute(
@@ -261,15 +305,26 @@ def run_case(model, runtime, case, output_dir):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--output-dir", type=Path,
+        "--output-dir",
+        type=Path,
         default=COMFY_ROOT / "output" / "yue2_parity_5cases",
     )
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     model, runtime = nodes.YuE2ModelLoader.execute(
-        "hugging_face", "m-a-p/YuE2-3B", "m-a-p/YuE2-Vae", "bfloat16",
-        "cuda", 24.0, False, True, True, "", "", "",
+        "hugging_face",
+        "m-a-p/YuE2-3B",
+        "m-a-p/YuE2-Vae",
+        "bfloat16",
+        "cuda",
+        24.0,
+        False,
+        True,
+        True,
+        "",
+        "",
+        "",
     ).result
     started = time.perf_counter()
     results = []

@@ -1,5 +1,5 @@
 [project]
-name = "yue2"
+name = "yue2-native"
 version = "0.1.0"
 description = "Composable ComfyUI V3 nodes for YuE2 music generation"
 readme = "README.md"
@@ -23,7 +23,7 @@ dependencies = { file = ["requirements.txt"] }
 
 [tool.comfy]
 PublisherId = "endman100"
-DisplayName = "YuE2"
+DisplayName = "YuE2 Native"
 requires-comfyui = ">=0.35.0"
 
 [tool.ruff]

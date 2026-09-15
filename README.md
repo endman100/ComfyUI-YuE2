@@ -4,15 +4,22 @@ Composable ComfyUI V3 nodes for [m-a-p/YuE2-3B](https://huggingface.co/m-a-p/YuE
 
 ## Install
 
+Install **YuE2 Native** from ComfyUI Manager, or use the Comfy CLI:
+
+```powershell
+comfy node install yue2-native
+```
+
+For a manual installation:
+
 ```powershell
 cd ComfyUI/custom_nodes
 git clone https://github.com/endman100/ComfyUI-YuE2.git
 cd ComfyUI-YuE2
 python -m pip install -r requirements.txt
-python install.py
 ```
 
-`install.py` discovers the newest official `yue2_infer` wheel in the YuE2-3B repository and builds a local compatibility wheel. It keeps the installed ComfyUI Torch stack, relaxes only the upstream environment pins, and routes AR/NAR attention through ComfyUI's selected optimized backend. Restart ComfyUI after installation.
+The dependencies install a commit-pinned, auditable YuE2 0.1.6 compatibility fork. It keeps ComfyUI in control of the Torch environment and routes AR/NAR attention through ComfyUI's selected optimized backend. Model weights are still downloaded lazily only when a workflow first executes. Restart ComfyUI after installation.
 
 ## Test
 
@@ -109,8 +116,8 @@ The parity suite gives the official `YuE2Pipeline.synthesize/decode` path and th
 
 ## Compatibility
 
-Tested against ComfyUI 0.35.0's `comfy_api.v0_0_2`, frontend 1.51.10, Python 3.12, PyTorch 2.14.0 + CUDA 13.0, and the official YuE2 inference 0.1.5 compatibility build on an NVIDIA RTX 5090. `v0_0_2` is the latest numbered V3 API in this release but is still marked experimental upstream. The node package requires ComfyUI 0.35.0 or newer.
+Tested against ComfyUI 0.35.0's `comfy_api.v0_0_2`, frontend 1.51.10, Python 3.12, PyTorch 2.14.0 + CUDA 13.0, and the YuE2 0.1.6 ComfyUI compatibility fork on an NVIDIA RTX 5090. `v0_0_2` is the latest numbered V3 API in this release but is still marked experimental upstream. The node package requires ComfyUI 0.35.0 or newer.
 
 ## License
 
-The original ComfyUI integration code in this repository is released under the MIT License. YuE2 model weights are separate downloads licensed under CC BY-NC 4.0 and are not included in this repository. The official inference wheel and its bundled components retain their upstream terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) before redistribution or commercial use.
+The original ComfyUI integration code in this repository is released under the MIT License. YuE2 model weights are separate downloads licensed under CC BY-NC 4.0 and are not included in this repository. The YuE2 inference dependency and its bundled components retain their upstream terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) before redistribution or commercial use.

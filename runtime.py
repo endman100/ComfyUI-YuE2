@@ -247,19 +247,13 @@ def model_source_fingerprint(handle: YuE2ModelHandle):
 
 
 def _load_yue2():
-    try:
-        module = importlib.import_module("yue2")
-    except ImportError as exc:
-        raise RuntimeError(
-            "The YuE2 inference runtime is not installed. Run install.py in "
-            "custom_nodes/ComfyUI-YuE2, then restart ComfyUI."
-        ) from exc
+    module = importlib.import_module("yue2")
     version = tuple(
         int(part)
         for part in re.findall(r"\d+", getattr(module, "__version__", "0"))[:3]
     )
-    if version < (0, 1, 5):
-        raise RuntimeError("ComfyUI-YuE2 requires yue2-infer 0.1.5 or newer")
+    if version < (0, 1, 6):
+        raise RuntimeError("ComfyUI-YuE2 requires yue2-infer-comfyui 0.1.6 or newer")
     return module
 
 
