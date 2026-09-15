@@ -1,6 +1,6 @@
 [project]
 name = "yue2-native"
-version = "0.1.0"
+version = "0.1.1"
 description = "Composable ComfyUI V3 nodes for YuE2 music generation"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -28,6 +28,9 @@ requires-comfyui = ">=0.35.0"
 
 [tool.ruff]
 target-version = "py310"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["N999"]
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib --confcutdir=tests"

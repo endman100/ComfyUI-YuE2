@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 import sys
-
+from pathlib import Path
 
 NODE_DIR = Path(__file__).parents[1]
 COMFYUI_ROOT = Path(os.environ.get("COMFYUI_ROOT", NODE_DIR.parents[1])).resolve()

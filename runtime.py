@@ -1,24 +1,23 @@
 from __future__ import annotations
 
-from contextlib import nullcontext
-from dataclasses import dataclass
-from functools import lru_cache
 import importlib
 import re
 import threading
 import time
+from contextlib import nullcontext
+from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
+from typing import ClassVar
 
-import torch
-
-import folder_paths
 import comfy.conds
 import comfy.latent_formats
 import comfy.model_base
 import comfy.model_patcher
 import comfy.supported_models_base
+import folder_paths
+import torch
 from comfy import model_management
-
 
 MODEL_ROOT = Path(folder_paths.models_dir) / "yue2"
 folder_paths.add_model_folder_path("yue2", str(MODEL_ROOT), is_default=True)
@@ -74,7 +73,7 @@ class _YuE2LatentFormat(comfy.latent_formats.LatentFormat):
 
 class _YuE2ModelConfig(comfy.supported_models_base.BASE):
     latent_format = _YuE2LatentFormat
-    sampling_settings = {"shift": 1.0, "multiplier": 1000}
+    sampling_settings: ClassVar = {"shift": 1.0, "multiplier": 1000}
     memory_usage_factor = 0.0
 
 

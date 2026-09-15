@@ -5,14 +5,13 @@ import hashlib
 import importlib.util
 import json
 import math
-from pathlib import Path
 import sys
 import time
+from pathlib import Path
 
 import numpy as np
 import soundfile
 import torch
-
 
 NODE_DIR = Path(__file__).parents[1]
 COMFY_ROOT = NODE_DIR.parents[1]
@@ -28,13 +27,12 @@ sys.modules[spec.name] = package
 spec.loader.exec_module(package)
 nodes = sys.modules[f"{spec.name}.nodes"]
 
-from comfy_extras.nodes_custom_sampler import (  # noqa: E402
+from comfy_extras.nodes_custom_sampler import (
     BasicGuider,
     RandomNoise,
     SamplerCustomAdvanced,
 )
-from yue2.protocol import Sampling  # noqa: E402
-
+from yue2.protocol import Sampling
 
 ABC_SCORE = """X:1
 T:Parity Test
