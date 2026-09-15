@@ -1,3 +1,43 @@
+
+
+https://github.com/user-attachments/assets/fa2e322f-af92-4839-8dd0-bcf1b74bd7c0
+
+
+
+https://github.com/user-attachments/assets/f7a6e844-901b-4c32-804d-05f9b36573b6
+
+
+
+https://github.com/user-attachments/assets/8c7fe8dd-a390-44f8-b79a-b33134365bec
+
+
+
+https://github.com/user-attachments/assets/df99027e-6389-4da3-be08-a36bac5df374
+
+
+
+https://github.com/user-attachments/assets/025a56fc-b991-4add-9f86-4758941f5f4e
+
+
+
+https://github.com/user-attachments/assets/2877d0a2-b503-41d8-8fbf-c032349f7d3d
+
+
+
+https://github.com/user-attachments/assets/6d332e0c-6fee-43f8-abb2-109301789ed2
+
+
+
+https://github.com/user-attachments/assets/463c025b-268a-49d8-8df5-0c18dbde6419
+
+
+
+https://github.com/user-attachments/assets/092ab23c-803d-44fe-8efd-ac1e6d2a7da3
+
+<video src="https://github.com/user-attachments/assets/9413bdbb-a192-4a3c-8b7f-bda0212ff53a" controls width="420" height="54"></video>
+
+https://github.com/user-attachments/assets/9413bdbb-a192-4a3c-8b7f-bda0212ff53a
+
 # ComfyUI-YuE2
 
 Composable ComfyUI V3 nodes for [YuE2-3B](https://huggingface.co/m-a-p/YuE2-3B): generate songs from lyrics and style, create or edit an ABC score, and run YuE2's acoustic flow through native ComfyUI sampling nodes.
