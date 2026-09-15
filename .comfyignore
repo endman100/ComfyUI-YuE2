@@ -1,6 +1,7 @@
 .github/
 tests/
 tools/
+validation_outputs/
 __pycache__/
 *.pyc
 .pytest_cache/

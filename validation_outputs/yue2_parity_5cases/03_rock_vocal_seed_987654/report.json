@@ -1,0 +1,52 @@
+{
+  "name": "03_rock_vocal_seed_987654",
+  "passed": true,
+  "settings": {
+    "style": "energetic alternative rock, gritty male vocal, electric guitars and live drums",
+    "lyrics": "[Verse]\nThe road keeps calling my name\n[Chorus]\nWe rise again",
+    "cot": "off",
+    "seed": 987654,
+    "supplied_abc": false,
+    "semantic_sampling": {
+      "temperature": 1.2,
+      "top_p": 0.98,
+      "top_k": 200,
+      "repetition_penalty": 1.15,
+      "penalty_window": 50,
+      "min_tokens": 32,
+      "max_tokens": 128
+    },
+    "ode_steps": 32,
+    "full_decode": false
+  },
+  "comparison_boundary": "One YuE2 Generate Semantic output is shared by the official synthesize/decode branch and the ComfyUI SamplerCustomAdvanced/YuE2 Decode branch.",
+  "plan_type": "SymbolicPlan",
+  "semantic_type": "SemanticResult",
+  "semantic_tokens": 128,
+  "latents": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "audio": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "sample_rate": 48000,
+  "duration_seconds": 5.118666666666667,
+  "artifacts": {
+    "official": "D:\\ComfyUI\\output\\yue2_parity_5cases\\03_rock_vocal_seed_987654\\official.wav",
+    "comfyui": "D:\\ComfyUI\\output\\yue2_parity_5cases\\03_rock_vocal_seed_987654\\comfyui.wav",
+    "difference": "D:\\ComfyUI\\output\\yue2_parity_5cases\\03_rock_vocal_seed_987654\\difference.wav",
+    "official_sha256": "da6a4503f97b74303616a7e6bdbd7ed8cec619077d7a8e86cb2daf70d738226b",
+    "comfyui_sha256": "da6a4503f97b74303616a7e6bdbd7ed8cec619077d7a8e86cb2daf70d738226b"
+  },
+  "elapsed_seconds": 5.261973200000284
+}

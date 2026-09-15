@@ -1,0 +1,52 @@
+{
+  "name": "04_auto_abc_full_seed_42",
+  "passed": true,
+  "settings": {
+    "style": "cinematic folk ballad, intimate vocal, acoustic guitar and cello",
+    "lyrics": "[Verse]\nCarry the morning home",
+    "cot": "full",
+    "seed": 42,
+    "supplied_abc": false,
+    "semantic_sampling": {
+      "temperature": 1.0,
+      "top_p": 0.95,
+      "top_k": 100,
+      "repetition_penalty": 1.2,
+      "penalty_window": 50,
+      "min_tokens": 32,
+      "max_tokens": 128
+    },
+    "ode_steps": 32,
+    "full_decode": false
+  },
+  "comparison_boundary": "One YuE2 Generate Semantic output is shared by the official synthesize/decode branch and the ComfyUI SamplerCustomAdvanced/YuE2 Decode branch.",
+  "plan_type": "SymbolicPlan",
+  "semantic_type": "SemanticResult",
+  "semantic_tokens": 128,
+  "latents": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "audio": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "sample_rate": 48000,
+  "duration_seconds": 5.118666666666667,
+  "artifacts": {
+    "official": "D:\\ComfyUI\\output\\yue2_parity_5cases\\04_auto_abc_full_seed_42\\official.wav",
+    "comfyui": "D:\\ComfyUI\\output\\yue2_parity_5cases\\04_auto_abc_full_seed_42\\comfyui.wav",
+    "difference": "D:\\ComfyUI\\output\\yue2_parity_5cases\\04_auto_abc_full_seed_42\\difference.wav",
+    "official_sha256": "8593756d3d9441ecc5e8a550f0e2acc92c8bcfc48d6f05527060b33fd33be8a1",
+    "comfyui_sha256": "8593756d3d9441ecc5e8a550f0e2acc92c8bcfc48d6f05527060b33fd33be8a1"
+  },
+  "elapsed_seconds": 5.528701900000669
+}

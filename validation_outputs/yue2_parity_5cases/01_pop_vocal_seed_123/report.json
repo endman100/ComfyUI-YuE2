@@ -1,0 +1,52 @@
+{
+  "name": "01_pop_vocal_seed_123",
+  "passed": true,
+  "settings": {
+    "style": "warm acoustic pop, clear female vocal, piano and strings",
+    "lyrics": "[Verse]\nShine through the night",
+    "cot": "off",
+    "seed": 123,
+    "supplied_abc": false,
+    "semantic_sampling": {
+      "temperature": 1.0,
+      "top_p": 0.95,
+      "top_k": 100,
+      "repetition_penalty": 1.2,
+      "penalty_window": 50,
+      "min_tokens": 32,
+      "max_tokens": 200
+    },
+    "ode_steps": 32,
+    "full_decode": false
+  },
+  "comparison_boundary": "One YuE2 Generate Semantic output is shared by the official synthesize/decode branch and the ComfyUI SamplerCustomAdvanced/YuE2 Decode branch.",
+  "plan_type": "SymbolicPlan",
+  "semantic_type": "SemanticResult",
+  "semantic_tokens": 200,
+  "latents": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "audio": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "sample_rate": 48000,
+  "duration_seconds": 7.998666666666667,
+  "artifacts": {
+    "official": "D:\\ComfyUI\\output\\yue2_parity_5cases\\01_pop_vocal_seed_123\\official.wav",
+    "comfyui": "D:\\ComfyUI\\output\\yue2_parity_5cases\\01_pop_vocal_seed_123\\comfyui.wav",
+    "difference": "D:\\ComfyUI\\output\\yue2_parity_5cases\\01_pop_vocal_seed_123\\difference.wav",
+    "official_sha256": "6e61a84f18bc7de40ee440270cb283685caba752bbcd58044ec031cce685bc00",
+    "comfyui_sha256": "6e61a84f18bc7de40ee440270cb283685caba752bbcd58044ec031cce685bc00"
+  },
+  "elapsed_seconds": 80.03767319999861
+}

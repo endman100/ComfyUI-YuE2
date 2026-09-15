@@ -1,0 +1,52 @@
+{
+  "name": "05_supplied_abc_melody_seed_314159",
+  "passed": true,
+  "settings": {
+    "style": "bright chamber pop rearrangement, duet vocals, strings and piano",
+    "lyrics": "[Verse]\nFollow this familiar line",
+    "cot": "melody",
+    "seed": 314159,
+    "supplied_abc": true,
+    "semantic_sampling": {
+      "temperature": 0.9,
+      "top_p": 0.92,
+      "top_k": 80,
+      "repetition_penalty": 1.2,
+      "penalty_window": 50,
+      "min_tokens": 32,
+      "max_tokens": 96
+    },
+    "ode_steps": 32,
+    "full_decode": true
+  },
+  "comparison_boundary": "One YuE2 Generate Semantic output is shared by the official synthesize/decode branch and the ComfyUI SamplerCustomAdvanced/YuE2 Decode branch.",
+  "plan_type": "SymbolicPlan",
+  "semantic_type": "SemanticResult",
+  "semantic_tokens": 96,
+  "latents": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "audio": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "sample_rate": 48000,
+  "duration_seconds": 3.8386666666666667,
+  "artifacts": {
+    "official": "D:\\ComfyUI\\output\\yue2_parity_5cases\\05_supplied_abc_melody_seed_314159\\official.wav",
+    "comfyui": "D:\\ComfyUI\\output\\yue2_parity_5cases\\05_supplied_abc_melody_seed_314159\\comfyui.wav",
+    "difference": "D:\\ComfyUI\\output\\yue2_parity_5cases\\05_supplied_abc_melody_seed_314159\\difference.wav",
+    "official_sha256": "9cac2dd1b0ef47a4fa189504d9e14bd22dbb1ed93c0babb828a4f447c4c93543",
+    "comfyui_sha256": "9cac2dd1b0ef47a4fa189504d9e14bd22dbb1ed93c0babb828a4f447c4c93543"
+  },
+  "elapsed_seconds": 4.808492099999057
+}

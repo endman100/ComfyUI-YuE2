@@ -249,11 +249,17 @@ The acceptance threshold was exact tensor equality at both comparison boundaries
 | `04_auto_abc_full_seed_42` | Automatically generated `full` ABC score | 128 | Tiled | 5.1187 s | `0 / 0` | `0 / 0` | Pass | `8593756d3d9441ecc5e8a550f0e2acc92c8bcfc48d6f05527060b33fd33be8a1` |
 | `05_supplied_abc_melody_seed_314159` | Supplied ABC rearrangement, `cot=melody` | 96 | Full | 3.8387 s | `0 / 0` | `0 / 0` | Pass | `9cac2dd1b0ef47a4fa189504d9e14bd22dbb1ed93c0babb828a4f447c4c93543` |
 
-Result: **5/5 passed**, with exact latent and raw float32 audio equality. The run completed in 103.80 seconds including initial loading. Per-case `official.wav`, `comfyui.wav`, `difference.wav`, and `report.json` files are generated locally under:
+Result: **5/5 passed**, with exact latent and raw float32 audio equality. The run completed in 103.80 seconds including initial loading. The committed A/B audio and per-case reports can be reviewed directly:
 
-```text
-ComfyUI/output/yue2_parity_5cases/<case>/
-```
+| Case | Official pipeline | ComfyUI graph | Difference | Metrics |
+| --- | --- | --- | --- | --- |
+| `01_pop_vocal_seed_123` | [official.wav](validation_outputs/yue2_parity_5cases/01_pop_vocal_seed_123/official.wav) | [comfyui.wav](validation_outputs/yue2_parity_5cases/01_pop_vocal_seed_123/comfyui.wav) | [difference.wav](validation_outputs/yue2_parity_5cases/01_pop_vocal_seed_123/difference.wav) | [report.json](validation_outputs/yue2_parity_5cases/01_pop_vocal_seed_123/report.json) |
+| `02_electronic_instrumental_seed_2026` | [official.wav](validation_outputs/yue2_parity_5cases/02_electronic_instrumental_seed_2026/official.wav) | [comfyui.wav](validation_outputs/yue2_parity_5cases/02_electronic_instrumental_seed_2026/comfyui.wav) | [difference.wav](validation_outputs/yue2_parity_5cases/02_electronic_instrumental_seed_2026/difference.wav) | [report.json](validation_outputs/yue2_parity_5cases/02_electronic_instrumental_seed_2026/report.json) |
+| `03_rock_vocal_seed_987654` | [official.wav](validation_outputs/yue2_parity_5cases/03_rock_vocal_seed_987654/official.wav) | [comfyui.wav](validation_outputs/yue2_parity_5cases/03_rock_vocal_seed_987654/comfyui.wav) | [difference.wav](validation_outputs/yue2_parity_5cases/03_rock_vocal_seed_987654/difference.wav) | [report.json](validation_outputs/yue2_parity_5cases/03_rock_vocal_seed_987654/report.json) |
+| `04_auto_abc_full_seed_42` | [official.wav](validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/official.wav) | [comfyui.wav](validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/comfyui.wav) | [difference.wav](validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/difference.wav) | [report.json](validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/report.json) |
+| `05_supplied_abc_melody_seed_314159` | [official.wav](validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/official.wav) | [comfyui.wav](validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/comfyui.wav) | [difference.wav](validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/difference.wav) | [report.json](validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/report.json) |
+
+The aggregate machine-readable result is [`summary.json`](validation_outputs/yue2_parity_5cases/summary.json). Newly reproduced artifacts are written locally to `ComfyUI/output/yue2_parity_5cases/<case>/`. The committed validation audio is excluded from the Comfy Registry package through `.comfyignore`, so Manager installation does not download these review-only files.
 
 Reproduce the checks from the repository root inside the configured ComfyUI Python environment:
 

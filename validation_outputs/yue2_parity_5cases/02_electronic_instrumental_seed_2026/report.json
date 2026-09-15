@@ -1,0 +1,52 @@
+{
+  "name": "02_electronic_instrumental_seed_2026",
+  "passed": true,
+  "settings": {
+    "style": "instrumental progressive electronic, analog synth, deep bass, crisp drums",
+    "lyrics": "[Instrumental]",
+    "cot": "off",
+    "seed": 2026,
+    "supplied_abc": false,
+    "semantic_sampling": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 50,
+      "repetition_penalty": 1.1,
+      "penalty_window": 64,
+      "min_tokens": 32,
+      "max_tokens": 160
+    },
+    "ode_steps": 32,
+    "full_decode": false
+  },
+  "comparison_boundary": "One YuE2 Generate Semantic output is shared by the official synthesize/decode branch and the ComfyUI SamplerCustomAdvanced/YuE2 Decode branch.",
+  "plan_type": "SymbolicPlan",
+  "semantic_type": "SemanticResult",
+  "semantic_tokens": 160,
+  "latents": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "audio": {
+    "shape_equal": true,
+    "exact_equal": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "rmse": 0.0,
+    "snr_db": null
+  },
+  "sample_rate": 48000,
+  "duration_seconds": 6.398666666666666,
+  "artifacts": {
+    "official": "D:\\ComfyUI\\output\\yue2_parity_5cases\\02_electronic_instrumental_seed_2026\\official.wav",
+    "comfyui": "D:\\ComfyUI\\output\\yue2_parity_5cases\\02_electronic_instrumental_seed_2026\\comfyui.wav",
+    "difference": "D:\\ComfyUI\\output\\yue2_parity_5cases\\02_electronic_instrumental_seed_2026\\difference.wav",
+    "official_sha256": "c74e475ce3fa095c4fea142011d474411de4cf448cc6af2495de6c661efca05a",
+    "comfyui_sha256": "c74e475ce3fa095c4fea142011d474411de4cf448cc6af2495de6c661efca05a"
+  },
+  "elapsed_seconds": 5.2749420999989525
+}
