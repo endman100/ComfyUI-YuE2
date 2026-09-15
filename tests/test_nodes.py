@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 import asyncio
-from contextlib import nullcontext
 import importlib.util
 import json
-from pathlib import Path
 import sys
+from contextlib import nullcontext
+from itertools import pairwise
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 import torch
 import yue2.modeling_yue2
-
+from yue2.pipeline import SymbolicPlan
+from yue2.protocol import SongRequest
 
 NODE_DIR = Path(__file__).parents[1]
 SPEC = importlib.util.spec_from_file_location(
@@ -68,6 +70,7 @@ def test_v3_extension_registers_only_minimal_composable_nodes():
     assert asyncio.run(extension.get_node_list()) == [
         nodes.YuE2ModelLoader,
         nodes.YuE2PlanScore,
+        nodes.YuE2PlanEditor,
         nodes.YuE2GenerateSemantic,
         nodes.YuE2EmptyLatent,
         nodes.YuE2ExplicitMidpoint,
@@ -82,6 +85,44 @@ def test_v3_extension_registers_only_minimal_composable_nodes():
         "YuE2SaveArtifacts",
     ):
         assert not hasattr(nodes, removed)
+
+
+def test_yue2_nodes_expose_english_ui_help():
+    node_types = [
+        nodes.YuE2ModelLoader,
+        nodes.YuE2PlanScore,
+        nodes.YuE2PlanEditor,
+        nodes.YuE2GenerateSemantic,
+        nodes.YuE2EmptyLatent,
+        nodes.YuE2ExplicitMidpoint,
+        nodes.YuE2LinearSchedule,
+        nodes.YuE2Decode,
+    ]
+    for node_type in node_types:
+        schema = node_type.define_schema()
+        assert schema.description
+        assert all(value.display_name and value.tooltip for value in schema.inputs)
+        assert all(value.display_name and value.tooltip for value in schema.outputs)
+
+    plan_schema = nodes.YuE2PlanScore.define_schema()
+    plan_inputs = {value.id: value for value in plan_schema.inputs}
+    assert plan_inputs["style"].display_name == "Style Prompt"
+    assert plan_inputs["style"].placeholder.startswith("Describe genre")
+    assert plan_inputs["lyrics"].display_name == "Lyrics"
+    assert plan_inputs["lyrics"].placeholder.startswith("[Verse]")
+    assert plan_inputs["abc"].display_name == "ABC Score (optional)"
+    assert plan_inputs["abc"].placeholder.startswith("Optional ABC notation")
+    assert plan_schema.outputs[1].display_name == "ABC Score (text preview/export)"
+
+    editor_schema = nodes.YuE2PlanEditor.define_schema()
+    editor_inputs = {value.id: value for value in editor_schema.inputs}
+    assert editor_inputs["abc"].display_name == "ABC Score Override (optional)"
+    assert editor_inputs["abc"].placeholder.startswith("Optional replacement ABC")
+    assert editor_inputs["edits_json"].display_name == (
+        "Advanced Overrides (JSON, optional)"
+    )
+    assert editor_inputs["edits_json"].default == ""
+    assert editor_inputs["edits_json"].placeholder.startswith("Optional JSON")
 
 
 def test_example_workflows_are_current_composable_ui_graphs():
@@ -106,6 +147,7 @@ def test_example_workflows_are_current_composable_ui_graphs():
         "SamplerCustomAdvanced",
         "YuE2Decode",
         "SaveAudioAdvanced",
+        "Note",
     }
     removed_types = {
         "YuE2SamplingConfig",
@@ -122,14 +164,39 @@ def test_example_workflows_are_current_composable_ui_graphs():
         assert workflow["last_link_id"] == max(link[0] for link in workflow["links"])
         node_types = {node["type"] for node in workflow["nodes"]}
         assert required_types.issubset(node_types)
-        if path.name in {
-            "yue2_automatic_score.json",
-            "yue2_abc_cover_rearrangement.json",
-        }:
+        if path.name == "yue2_abc_cover_rearrangement.json":
+            assert node_types == required_types | {"PreviewAny", "YuE2PlanEditor"}
+        elif path.name == "yue2_automatic_score.json":
             assert node_types == required_types | {"PreviewAny"}
         else:
             assert node_types == required_types
         assert node_types.isdisjoint(removed_types)
+
+        semantic_node = next(
+            node for node in workflow["nodes"] if node["type"] == "YuE2GenerateSemantic"
+        )
+        empty_latent = next(
+            node for node in workflow["nodes"] if node["type"] == "YuE2EmptyLatent"
+        )
+        assert [output["type"] for output in semantic_node["outputs"]] == [
+            "CONDITIONING"
+        ]
+        assert empty_latent["inputs"][0]["type"] == "CONDITIONING"
+
+        note_titles = {
+            node.get("title") for node in workflow["nodes"] if node["type"] == "Note"
+        }
+        assert {
+            "YuE2 Model Loader — setup",
+            "YuE2 Plan Score — inputs",
+            "YuE2 Generate Semantic — conditioning",
+            "YuE2 Linear Schedule — steps",
+            "YuE2 Decode — audio",
+        }.issubset(note_titles)
+        assert all("Empty Latent" not in title for title in note_titles)
+        assert all("Explicit Midpoint" not in title for title in note_titles)
+        if path.name == "yue2_abc_cover_rearrangement.json":
+            assert "YuE2 Plan Editor — overrides" in note_titles
 
         nodes_by_id = {node["id"]: node for node in workflow["nodes"]}
         for link_id, source, source_slot, target, target_slot, data_type in workflow[
@@ -148,6 +215,14 @@ def test_example_workflows_are_current_composable_ui_graphs():
         )
         assert loader["widgets_values_named"]["source"] == "hugging_face"
         assert loader["widgets_values_named"]["local_files_only"] is False
+        plan = next(
+            node for node in workflow["nodes"] if node["type"] == "YuE2PlanScore"
+        )
+        assert plan["title"] == "YuE2 Plan Score — Style / Lyrics / ABC Score"
+        assert [output["name"] for output in plan["outputs"]] == [
+            "Song Plan",
+            "ABC Score (text preview/export)",
+        ]
         sampler = next(
             node for node in workflow["nodes"] if node["type"] == "YuE2LinearSchedule"
         )
@@ -163,6 +238,20 @@ def test_example_workflows_are_current_composable_ui_graphs():
         node for node in cover["nodes"] if node["type"] == "YuE2PlanScore"
     )
     assert cover_plan["widgets_values_named"]["abc"].startswith("X:1\n")
+    cover_editor = next(
+        node for node in cover["nodes"] if node["type"] == "YuE2PlanEditor"
+    )
+    assert cover_editor["title"] == "YuE2 Plan Editor — ABC Override / JSON Overrides"
+    assert [input_["name"] for input_ in cover_editor["inputs"]] == [
+        "runtime",
+        "plan",
+    ]
+    assert [output["name"] for output in cover_editor["outputs"]] == [
+        "Edited Song Plan",
+        "Edited ABC Score (text preview/export)",
+        "Plan Data (DICT)",
+    ]
+    assert cover_editor["widgets_values_named"] == {"abc": "", "edits_json": ""}
 
 
 def test_loader_returns_standard_model_and_shared_lazy_runtime(monkeypatch):
@@ -244,7 +333,7 @@ def test_plan_score_exposes_official_abc_controls():
         abc="X:1",
         abc_ids=[1],
         prefix=[2],
-        request=SimpleNamespace(to_dict=lambda: {}),
+        request=SimpleNamespace(to_dict=dict),
         timing={},
         truncated=False,
     )
@@ -270,7 +359,85 @@ def test_plan_score_exposes_official_abc_controls():
     ) == (0.5, 0.8, 20, 100)
 
 
-def test_generate_semantic_returns_standard_conditioning_and_payload():
+def test_plan_editor_rebuilds_derived_fields_and_returns_plain_data():
+    base = SymbolicPlan(
+        SongRequest("rock", "lyrics", cot="full", seed=11),
+        "X:1\nK:C\nC|",
+        [1],
+        [2],
+        {"seconds": 1.0},
+    )
+
+    class FakePipeline:
+        def plan(self, *, request):
+            self.request = request
+            return SymbolicPlan(
+                request,
+                request.abc,
+                [7, 8],
+                [9, 10],
+                {"seconds": 0.0},
+            )
+
+    handle = runtime.make_config(**loader_values())
+    handle._pipeline = FakePipeline()
+    edits = json.dumps(
+        {
+            "request": {"style": "jazz", "seed": 42},
+            "abc": "X:2\nK:D\nD|",
+            "abc_ids": [999],
+            "prefix": [999],
+        }
+    )
+    edited, abc, data = nodes.YuE2PlanEditor.execute(
+        handle, base, "X:3\nK:F\nF|", edits
+    ).result
+
+    assert edited.request.style == "jazz"
+    assert edited.request.lyrics == "lyrics"
+    assert edited.request.seed == 42
+    assert edited.request.abc == "X:3\nK:F\nF|"
+    assert abc == edited.abc == "X:3\nK:F\nF|"
+    assert data == {
+        "request": edited.request.to_dict(),
+        "abc": edited.abc,
+        "abc_ids": [7, 8],
+        "prefix": [9, 10],
+        "timing": {"seconds": 0.0},
+        "truncated": False,
+    }
+
+
+def test_plan_editor_clears_score_for_cot_off_and_rejects_bad_edits():
+    base = SymbolicPlan(
+        SongRequest("rock", "lyrics", cot="full"),
+        "X:1\nK:C\nC|",
+        [1],
+        [2],
+    )
+
+    class FakePipeline:
+        def plan(self, *, request):
+            self.request = request
+            return SymbolicPlan(request, None, [], [3])
+
+    handle = runtime.make_config(**loader_values())
+    handle._pipeline = FakePipeline()
+    edited = nodes.YuE2PlanEditor.execute(handle, base, "", '{"cot":"off"}')[0]
+    assert edited.request.cot == "off"
+    assert edited.request.abc is None
+
+    with pytest.raises(ValueError, match="received invalid JSON"):
+        nodes.YuE2PlanEditor.execute(handle, base, "", "{")
+    with pytest.raises(TypeError, match="expects a JSON object"):
+        nodes.YuE2PlanEditor.execute(handle, base, "", "[]")
+    with pytest.raises(ValueError, match="cannot edit: weights"):
+        nodes.YuE2PlanEditor.execute(handle, base, "", '{"weights":"other"}')
+    with pytest.raises(ValueError, match="requires nonempty ABC"):
+        nodes.YuE2PlanEditor.execute(handle, base, "", '{"abc":null}')
+
+
+def test_generate_semantic_returns_standard_conditioning_with_semantic_payload():
     semantic = fake_semantic()
 
     class FakePipeline:
@@ -280,10 +447,9 @@ def test_generate_semantic_returns_standard_conditioning_and_payload():
 
     handle = runtime.make_config(**loader_values())
     handle._pipeline = FakePipeline()
-    conditioning, payload = nodes.YuE2GenerateSemantic.execute(
+    (conditioning,) = nodes.YuE2GenerateSemantic.execute(
         handle, semantic.plan, 1.0, 0.95, 100, 1.2, 50, 200, 9000
     ).result
-    assert payload is semantic
     assert conditioning == [[None, {"yue2_semantic": semantic, "yue2_runtime": handle}]]
 
 
@@ -299,13 +465,19 @@ def test_model_rejects_conditioning_from_another_loader(monkeypatch):
 
 def test_empty_latent_uses_official_chunk_ranges(monkeypatch):
     semantic = fake_semantic(frames=7)
+    conditioning = [[None, {"yue2_semantic": semantic}]]
     monkeypatch.setattr(
         nodes, "chunk_ranges", lambda frames, prefix: [(0, 3), (3, frames)]
     )
-    latent = nodes.YuE2EmptyLatent.execute(semantic)[0]
+    latent = nodes.YuE2EmptyLatent.execute(conditioning)[0]
     chunks = latent["samples"].unbind()
     assert [tuple(chunk.shape) for chunk in chunks] == [(1, 64, 3), (1, 64, 4)]
     assert all(torch.count_nonzero(chunk) == 0 for chunk in chunks)
+
+
+def test_empty_latent_requires_yue2_conditioning():
+    with pytest.raises(ValueError, match="YuE2 Generate Semantic"):
+        nodes.YuE2EmptyLatent.execute([[None, {}]])
 
 
 def test_random_noise_layout_is_remapped_to_official_token_major_draw():
@@ -331,7 +503,7 @@ def test_explicit_midpoint_matches_reference_and_runs_chunk_major():
     expected = []
     for source in chunks:
         state = source.clone()
-        for start, end in zip(sigmas[:-1], sigmas[1:]):
+        for start, end in pairwise(sigmas):
             dt = start - end
             first = state.square() + start
             mid = state - first * (dt / 2)
@@ -350,12 +522,12 @@ def test_linear_schedule_is_exact_official_grid():
 
 
 def test_native_random_noise_basic_guider_and_sampler_custom_chain(monkeypatch):
+    import yue2.nar
     from comfy_extras.nodes_custom_sampler import (
         BasicGuider,
         RandomNoise,
         SamplerCustomAdvanced,
     )
-    import yue2.nar
 
     monkeypatch.setattr(runtime, "_resolve_device", lambda _value: torch.device("cpu"))
     monkeypatch.setattr(
@@ -388,7 +560,7 @@ def test_native_random_noise_basic_guider_and_sampler_custom_chain(monkeypatch):
     handle._pipeline = FakePipeline()
     monkeypatch.setattr(yue2.nar, "CachedNAR", FakeEngine)
     conditioning = [[None, {"yue2_semantic": semantic, "yue2_runtime": handle}]]
-    latent = nodes.YuE2EmptyLatent.execute(semantic)[0]
+    latent = nodes.YuE2EmptyLatent.execute(conditioning)[0]
     noise = RandomNoise.execute(123)[0]
     guider = BasicGuider.execute(model, conditioning)[0]
     sampler = nodes.YuE2ExplicitMidpoint.execute()[0]

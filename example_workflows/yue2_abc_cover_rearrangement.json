@@ -1,8 +1,8 @@
 {
   "id": "c4b1f267-cbfd-4082-a57e-9e746b3e8233",
   "revision": 0,
-  "last_node_id": 12,
-  "last_link_id": 15,
+  "last_node_id": 19,
+  "last_link_id": 17,
   "nodes": [
     {
       "id": 1,
@@ -34,7 +34,8 @@
           "links": [
             1,
             2,
-            3
+            3,
+            16
           ],
           "slot_index": 1
         }
@@ -74,6 +75,7 @@
     {
       "id": 2,
       "type": "YuE2PlanScore",
+      "title": "YuE2 Plan Score — Style / Lyrics / ABC Score",
       "pos": [
         410,
         0
@@ -94,7 +96,7 @@
       ],
       "outputs": [
         {
-          "name": "plan",
+          "name": "Song Plan",
           "type": "YUE2_PLAN",
           "links": [
             5
@@ -102,11 +104,9 @@
           "slot_index": 0
         },
         {
-          "name": "ABC score",
+          "name": "ABC Score (text preview/export)",
           "type": "STRING",
-          "links": [
-            15
-          ],
+          "links": null,
           "slot_index": 1
         }
       ],
@@ -169,7 +169,7 @@
         {
           "name": "plan",
           "type": "YUE2_PLAN",
-          "link": 5
+          "link": 17
         }
       ],
       "outputs": [
@@ -177,17 +177,10 @@
           "name": "conditioning",
           "type": "CONDITIONING",
           "links": [
-            6
-          ],
-          "slot_index": 0
-        },
-        {
-          "name": "semantic",
-          "type": "YUE2_SEMANTIC",
-          "links": [
+            6,
             7
           ],
-          "slot_index": 1
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -228,8 +221,8 @@
       "mode": 0,
       "inputs": [
         {
-          "name": "semantic",
-          "type": "YUE2_SEMANTIC",
+          "name": "conditioning",
+          "type": "CONDITIONING",
           "link": 7
         }
       ],
@@ -587,6 +580,213 @@
         null,
         null
       ]
+    },
+    {
+      "id": 13,
+      "type": "YuE2PlanEditor",
+      "title": "YuE2 Plan Editor — ABC Override / JSON Overrides",
+      "pos": [
+        850,
+        -330
+      ],
+      "size": [
+        390,
+        220
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "runtime",
+          "type": "YUE2_RUNTIME",
+          "link": 16
+        },
+        {
+          "name": "plan",
+          "type": "YUE2_PLAN",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Edited Song Plan",
+          "type": "YUE2_PLAN",
+          "links": [
+            17
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "Edited ABC Score (text preview/export)",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "Plan Data (DICT)",
+          "type": "DICT",
+          "links": [
+            15
+          ],
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "YuE2PlanEditor"
+      },
+      "widgets_values": [
+        "",
+        ""
+      ],
+      "widgets_values_named": {
+        "abc": "",
+        "edits_json": ""
+      }
+    },
+    {
+      "id": 14,
+      "type": "Note",
+      "pos": [
+        0,
+        -190
+      ],
+      "size": [
+        350,
+        145
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Model Loader — setup",
+      "properties": {},
+      "widgets_values": [
+        "Choose the weight source, model/VAE path, precision and device here. Hugging Face weights download on first use; ComfyUI manages caching, GPU loading and offload."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
+    },
+    {
+      "id": 15,
+      "type": "Note",
+      "pos": [
+        410,
+        -215
+      ],
+      "size": [
+        390,
+        170
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Plan Score — inputs",
+      "properties": {},
+      "widgets_values": [
+        "Style and Lyrics define the song. Score Planning full/melody generates ABC when the ABC field is blank; supplied ABC preserves musical structure for cover or rearrangement. The ABC text output is only for preview/export because Song Plan already contains it."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
+    },
+    {
+      "id": 16,
+      "type": "Note",
+      "pos": [
+        1270,
+        -215
+      ],
+      "size": [
+        500,
+        170
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Generate Semantic — conditioning",
+      "properties": {},
+      "widgets_values": [
+        "This node generates discrete semantic music tokens with YuE2's autoregressive model. Its single CONDITIONING output carries those tokens: connect it to both BasicGuider and YuE2 Empty Latent. Empty Latent reads only their length to allocate the correct acoustic latent shape."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
+    },
+    {
+      "id": 17,
+      "type": "Note",
+      "pos": [
+        850,
+        -570
+      ],
+      "size": [
+        390,
+        190
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Plan Editor — overrides",
+      "properties": {},
+      "widgets_values": [
+        "Leave both fields blank to keep the source plan. ABC Score Override replaces only the notation. Advanced Overrides accepts JSON fields: style, lyrics, cot, seed, cfg_scale, abc or id. Derived token data is rebuilt automatically."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
+    },
+    {
+      "id": 18,
+      "type": "Note",
+      "pos": [
+        1160,
+        720
+      ],
+      "size": [
+        420,
+        125
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Linear Schedule — steps",
+      "properties": {},
+      "widgets_values": [
+        "Sampling Steps controls the number of flow-matching denoising evaluations. The schedule follows YuE2 training time from 1 to 0 and is intended for SamplerCustomAdvanced."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
+    },
+    {
+      "id": 19,
+      "type": "Note",
+      "pos": [
+        1940,
+        -190
+      ],
+      "size": [
+        420,
+        145
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Decode — audio",
+      "properties": {},
+      "widgets_values": [
+        "Decodes sampled YuE2 acoustic latents to 48 kHz stereo AUDIO. Full Decode keeps the official full-sequence behavior and loudness; disable it only when reduced-memory chunked decoding is needed."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
     }
   ],
   "links": [
@@ -626,7 +826,7 @@
       5,
       2,
       0,
-      3,
+      13,
       1,
       "YUE2_PLAN"
     ],
@@ -641,10 +841,10 @@
     [
       7,
       3,
-      1,
+      0,
       4,
       0,
-      "YUE2_SEMANTIC"
+      "CONDITIONING"
     ],
     [
       8,
@@ -704,11 +904,27 @@
     ],
     [
       15,
+      13,
       2,
-      1,
       12,
       0,
-      "STRING"
+      "DICT"
+    ],
+    [
+      16,
+      1,
+      1,
+      13,
+      0,
+      "YUE2_RUNTIME"
+    ],
+    [
+      17,
+      13,
+      0,
+      3,
+      1,
+      "YUE2_PLAN"
     ]
   ],
   "groups": [

@@ -1,22 +1,41 @@
 from __future__ import annotations
 
+import json
 import math
-
-import torch
+from itertools import pairwise
 
 import comfy.nested_tensor
 import comfy.samplers
 import comfy.utils
+import torch
 from comfy import model_management
 from comfy_api.v0_0_2 import ComfyExtension, io
 from typing_extensions import override
 
 from .runtime import create_model_patcher, make_config, model_source_fingerprint
 
-
 YuE2Runtime = io.Custom("YUE2_RUNTIME")
 YuE2Plan = io.Custom("YUE2_PLAN")
-YuE2Semantic = io.Custom("YUE2_SEMANTIC")
+
+
+def _plan_data(plan):
+    return {
+        "request": plan.request.to_dict(),
+        "abc": plan.abc,
+        "abc_ids": list(plan.abc_ids),
+        "prefix": list(plan.prefix),
+        "timing": dict(plan.timing),
+        "truncated": bool(plan.truncated),
+    }
+
+
+def _semantic_from_conditioning(conditioning):
+    for entry in conditioning:
+        if len(entry) > 1 and "yue2_semantic" in entry[1]:
+            return entry[1]["yue2_semantic"]
+    raise ValueError(
+        "YuE2 Empty Latent requires CONDITIONING from YuE2 Generate Semantic"
+    )
 
 
 def chunk_ranges(frames, prefix_tokens):
@@ -57,7 +76,7 @@ def _explicit_midpoint(chunks, sigmas, velocity, on_step=None):
     output = []
     for chunk_index, source in enumerate(chunks):
         state = source
-        for step, (start, end) in enumerate(zip(sigmas[:-1], sigmas[1:])):
+        for step, (start, end) in enumerate(pairwise(sigmas)):
             dt = start - end
             first = velocity(state, start, chunk_index)
             mid = state - first * (dt / 2)
@@ -140,7 +159,7 @@ def _sample_yue2(model, noise, sigmas, extra_args, callback, disable, **_kwargs)
         engine = CachedNAR(nar_model, Chunk(tokens, state[0].T))
         try:
 
-            def velocity(value, sigma, _index):
+            def velocity(value, sigma, _index, engine=engine):
                 model_management.throw_exception_if_processing_interrupted()
                 return engine.velocity(value[0].T, _raw_time(sigma)).T.unsqueeze(0)
 
@@ -170,19 +189,37 @@ class YuE2ModelLoader(io.ComfyNode):
             description="Creates a lazy YuE2 runtime and a ComfyUI flow MODEL. Weights download/load only when a downstream YuE2 stage runs.",
             inputs=[
                 io.Combo.Input(
-                    "source", options=["hugging_face", "local"], default="hugging_face"
+                    "source",
+                    options=["hugging_face", "local"],
+                    default="hugging_face",
+                    display_name="Weight Source",
+                    tooltip="Download from Hugging Face, or load existing local model folders.",
                 ),
-                io.String.Input("model", default="m-a-p/YuE2-3B"),
-                io.String.Input("vae", default="m-a-p/YuE2-Vae"),
+                io.String.Input(
+                    "model",
+                    default="m-a-p/YuE2-3B",
+                    display_name="Model ID / Path",
+                    tooltip="Hugging Face repository ID or local YuE2 model directory.",
+                ),
+                io.String.Input(
+                    "vae",
+                    default="m-a-p/YuE2-Vae",
+                    display_name="VAE ID / Path",
+                    tooltip="Hugging Face repository ID or local YuE2 VAE directory.",
+                ),
                 io.Combo.Input(
                     "precision",
                     options=["auto", "bfloat16", "float16", "float32", "fp8"],
                     default="auto",
+                    display_name="Compute DType",
+                    tooltip="Model compute precision. FP8 uses BF16 compute with FP8-quantized linear weights.",
                 ),
                 io.Combo.Input(
                     "device",
                     options=["auto", "cuda", "cpu", "mps"],
                     default="auto",
+                    display_name="Device",
+                    tooltip="Execution device. Auto follows ComfyUI's selected device.",
                     advanced=True,
                 ),
                 io.Float.Input(
@@ -191,18 +228,62 @@ class YuE2ModelLoader(io.ComfyNode):
                     min=4.0,
                     max=256.0,
                     step=1.0,
+                    display_name="VRAM Budget (GiB)",
+                    tooltip="Approximate GPU memory budget used to choose YuE2 loading and offload behavior.",
                     advanced=True,
                 ),
-                io.Boolean.Input("offload_ar", default=True, advanced=True),
-                io.Boolean.Input("local_files_only", default=False, advanced=True),
-                io.Boolean.Input("verify_hashes", default=True, advanced=True),
-                io.String.Input("revision", default="", advanced=True),
-                io.String.Input("vae_revision", default="", advanced=True),
-                io.String.Input("cache_dir", default="", advanced=True),
+                io.Boolean.Input(
+                    "offload_ar",
+                    default=True,
+                    display_name="Offload AR Stage",
+                    tooltip="Release the score and semantic language model before acoustic sampling to reduce peak VRAM.",
+                    advanced=True,
+                ),
+                io.Boolean.Input(
+                    "local_files_only",
+                    default=False,
+                    display_name="Offline / Local Files Only",
+                    tooltip="Disable downloads and require every requested model file to exist locally.",
+                    advanced=True,
+                ),
+                io.Boolean.Input(
+                    "verify_hashes",
+                    default=True,
+                    display_name="Verify Downloaded Hashes",
+                    tooltip="Verify available model hashes before loading.",
+                    advanced=True,
+                ),
+                io.String.Input(
+                    "revision",
+                    default="",
+                    display_name="Model Revision",
+                    tooltip="Optional Hugging Face branch, tag, or commit. Blank uses the repository default.",
+                    advanced=True,
+                ),
+                io.String.Input(
+                    "vae_revision",
+                    default="",
+                    display_name="VAE Revision",
+                    tooltip="Optional VAE branch, tag, or commit. Blank uses the repository default.",
+                    advanced=True,
+                ),
+                io.String.Input(
+                    "cache_dir",
+                    default="",
+                    display_name="Cache Directory",
+                    tooltip="Optional model cache directory. Blank uses ComfyUI's YuE2 model folder.",
+                    advanced=True,
+                ),
             ],
             outputs=[
-                io.Model.Output(display_name="model"),
-                YuE2Runtime.Output(display_name="YuE2 runtime"),
+                io.Model.Output(
+                    display_name="MODEL",
+                    tooltip="ComfyUI flow model for BasicGuider and SamplerCustomAdvanced.",
+                ),
+                YuE2Runtime.Output(
+                    display_name="YuE2 Runtime",
+                    tooltip="Shared lazy runtime used by score, semantic, and decode nodes.",
+                ),
             ],
         )
 
@@ -253,19 +334,43 @@ class YuE2PlanScore(io.ComfyNode):
             node_id="YuE2PlanScore",
             display_name="YuE2 Plan Score",
             category="audio/generation/yue2",
-            description="Creates or applies editable ABC notation for original generation, covers, and rearrangement.",
+            description="Builds a YuE2 song plan from style and lyrics. It can generate an ABC score or apply a supplied score for cover and rearrangement workflows.",
             inputs=[
-                YuE2Runtime.Input("runtime"),
-                io.String.Input("style", multiline=True, dynamic_prompts=True),
-                io.String.Input("lyrics", multiline=True, dynamic_prompts=True),
+                YuE2Runtime.Input(
+                    "runtime",
+                    display_name="YuE2 Runtime",
+                    tooltip="Connect the runtime output from YuE2 Model Loader.",
+                ),
+                io.String.Input(
+                    "style",
+                    multiline=True,
+                    dynamic_prompts=True,
+                    placeholder="Describe genre, instruments, mood, vocals, and arrangement...",
+                    display_name="Style Prompt",
+                    tooltip="Describe genre, instruments, vocal character, mood, and arrangement.",
+                ),
+                io.String.Input(
+                    "lyrics",
+                    multiline=True,
+                    dynamic_prompts=True,
+                    placeholder="[Verse]\nWrite song lyrics here...",
+                    display_name="Lyrics",
+                    tooltip="Song lyrics with section tags such as [Verse], [Chorus], and [Bridge].",
+                ),
                 io.Combo.Input(
-                    "cot", options=["full", "melody", "off"], default="full"
+                    "cot",
+                    options=["full", "melody", "off"],
+                    default="full",
+                    display_name="Score Planning",
+                    tooltip="Full plans harmony and melody; Melody plans the melody only; Off skips ABC score planning.",
                 ),
                 io.Int.Input(
                     "seed",
                     default=831001,
                     min=0,
                     max=0x7FFFFFFFFFFFFFFF,
+                    display_name="Plan Seed",
+                    tooltip="Seed for ABC score planning. This is separate from the acoustic RandomNoise seed.",
                     control_after_generate=True,
                 ),
                 io.Float.Input(
@@ -274,40 +379,95 @@ class YuE2PlanScore(io.ComfyNode):
                     min=-1.0,
                     max=20.0,
                     step=0.01,
+                    display_name="Plan CFG Scale",
+                    tooltip="Classifier-free guidance for score planning. -1 uses YuE2's default behavior.",
                     advanced=True,
                 ),
-                io.String.Input("abc", default="", multiline=True, advanced=True),
+                io.String.Input(
+                    "abc",
+                    default="",
+                    multiline=True,
+                    placeholder="Optional ABC notation. Leave blank to generate a score...",
+                    display_name="ABC Score (optional)",
+                    tooltip="Human-readable music notation. Leave blank to generate it when Score Planning is Full or Melody; paste a score to preserve musical structure for a cover or rearrangement.",
+                    advanced=True,
+                ),
                 io.Float.Input(
                     "temperature",
                     default=0.7,
                     min=0.0,
                     max=5.0,
                     step=0.01,
+                    display_name="Score Temperature",
+                    tooltip="Randomness used only while generating an ABC score.",
                     advanced=True,
                 ),
                 io.Float.Input(
-                    "top_p", default=0.9, min=0.01, max=1.0, step=0.01, advanced=True
+                    "top_p",
+                    default=0.9,
+                    min=0.01,
+                    max=1.0,
+                    step=0.01,
+                    display_name="Score Top P",
+                    tooltip="Nucleus-sampling threshold used only for ABC score generation.",
+                    advanced=True,
                 ),
-                io.Int.Input("top_k", default=30, min=1, max=10000, advanced=True),
+                io.Int.Input(
+                    "top_k",
+                    default=30,
+                    min=1,
+                    max=10000,
+                    display_name="Score Top K",
+                    tooltip="Top-k sampling limit used only for ABC score generation.",
+                    advanced=True,
+                ),
                 io.Float.Input(
                     "repetition_penalty",
                     default=1.005,
                     min=0.01,
                     max=10.0,
                     step=0.001,
+                    display_name="Score Repetition Penalty",
+                    tooltip="Discourages repeated ABC tokens during score generation.",
                     advanced=True,
                 ),
                 io.Int.Input(
-                    "penalty_window", default=100, min=1, max=100, advanced=True
+                    "penalty_window",
+                    default=100,
+                    min=1,
+                    max=100,
+                    display_name="Score Penalty Window",
+                    tooltip="Recent-token window used by the score repetition penalty.",
+                    advanced=True,
                 ),
-                io.Int.Input("min_tokens", default=32, min=0, max=16384, advanced=True),
                 io.Int.Input(
-                    "max_tokens", default=4096, min=1, max=16384, advanced=True
+                    "min_tokens",
+                    default=32,
+                    min=0,
+                    max=16384,
+                    display_name="Minimum Score Tokens",
+                    tooltip="Minimum number of tokens allowed for generated ABC notation.",
+                    advanced=True,
+                ),
+                io.Int.Input(
+                    "max_tokens",
+                    default=4096,
+                    min=1,
+                    max=16384,
+                    display_name="Maximum Score Tokens",
+                    tooltip="Maximum number of tokens allowed for generated ABC notation.",
+                    advanced=True,
                 ),
             ],
             outputs=[
-                YuE2Plan.Output(display_name="plan"),
-                io.String.Output(display_name="ABC score"),
+                YuE2Plan.Output(
+                    display_name="Song Plan",
+                    tooltip="Structured YuE2 plan consumed by Generate Semantic or Plan Editor. It already contains the ABC score.",
+                ),
+                io.String.Output(
+                    display_name="ABC Score (text preview/export)",
+                    tooltip="Readable copy of the score stored inside Song Plan. Generation does not require this socket; connect it only for preview, saving, or external text processing.",
+                ),
             ],
         )
 
@@ -362,6 +522,114 @@ class YuE2PlanScore(io.ComfyNode):
         return io.NodeOutput(plan, plan.abc or "")
 
 
+class YuE2PlanEditor(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="YuE2PlanEditor",
+            display_name="YuE2 Plan Editor",
+            category="audio/generation/yue2/advanced",
+            description="Edits an existing YuE2 song plan. Use ABC Score Override for notation-only changes, or Advanced Overrides for JSON fields; tokenizer-derived data is rebuilt automatically.",
+            inputs=[
+                YuE2Runtime.Input(
+                    "runtime",
+                    display_name="YuE2 Runtime",
+                    tooltip="Connect the same runtime used to create the source plan.",
+                ),
+                YuE2Plan.Input(
+                    "plan",
+                    display_name="Source Song Plan",
+                    tooltip="Plan to edit. Blank override fields retain values from this plan.",
+                ),
+                io.String.Input(
+                    "abc",
+                    default="",
+                    multiline=True,
+                    placeholder="Optional replacement ABC score; blank keeps the current score...",
+                    display_name="ABC Score Override (optional)",
+                    tooltip="Paste edited ABC notation here. Leave blank to retain the score already stored in Source Song Plan.",
+                ),
+                io.String.Input(
+                    "edits_json",
+                    default="",
+                    multiline=True,
+                    placeholder='Optional JSON, e.g. {"style":"jazz ballad","seed":42}',
+                    advanced=True,
+                    display_name="Advanced Overrides (JSON, optional)",
+                    tooltip=(
+                        'Optional JSON object, for example {"style":"jazz ballad","seed":42}. '
+                        "Supported fields: style, lyrics, cot, seed, cfg_scale, abc, and id. "
+                        "A complete Plan Data object may also be pasted; derived token fields are ignored and rebuilt."
+                    ),
+                ),
+            ],
+            outputs=[
+                YuE2Plan.Output(
+                    display_name="Edited Song Plan",
+                    tooltip="Updated YuE2 plan for Generate Semantic.",
+                ),
+                io.String.Output(
+                    display_name="Edited ABC Score (text preview/export)",
+                    tooltip="Readable copy of the edited score. It is not required by Generate Semantic.",
+                ),
+                io.Dict.Output(
+                    display_name="Plan Data (DICT)",
+                    tooltip="Plain editable metadata for inspection or generic ComfyUI dictionary processing; generated token fields are included for reference.",
+                ),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, runtime, plan, abc, edits_json):
+        from yue2.protocol import SongRequest
+
+        try:
+            edits = json.loads(edits_json or "{}")
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"YuE2 Plan Editor received invalid JSON: {exc.msg}"
+            ) from exc
+        if not isinstance(edits, dict):
+            raise TypeError("YuE2 Plan Editor expects a JSON object")
+
+        editable = {"style", "lyrics", "cot", "seed", "cfg_scale", "abc", "id"}
+        derived = {"abc_ids", "prefix", "timing", "truncated"}
+        request_data = plan.request.to_dict()
+        request_data["abc"] = plan.abc
+
+        nested = edits.get("request")
+        if nested is not None:
+            if not isinstance(nested, dict):
+                raise ValueError("YuE2 Plan Editor request must be a JSON object")
+            unknown = set(nested) - editable
+            if unknown:
+                raise ValueError(
+                    f"YuE2 Plan Editor cannot edit: {', '.join(sorted(unknown))}"
+                )
+            request_data.update(nested)
+
+        unknown = set(edits) - editable - derived - {"request"}
+        if unknown:
+            raise ValueError(
+                f"YuE2 Plan Editor cannot edit: {', '.join(sorted(unknown))}"
+            )
+        request_data.update({key: edits[key] for key in editable if key in edits})
+        if abc.strip():
+            request_data["abc"] = abc
+        if request_data.get("cot") == "off":
+            request_data["abc"] = None
+        elif (
+            not isinstance(request_data.get("abc"), str)
+            or not request_data["abc"].strip()
+        ):
+            raise ValueError(
+                "YuE2 Plan Editor requires nonempty ABC for melody/full plans"
+            )
+
+        edited = runtime.pipeline().plan(request=SongRequest(**request_data))
+        return io.NodeOutput(edited, edited.abc or "", _plan_data(edited))
+
+
 class YuE2GenerateSemantic(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -369,43 +637,90 @@ class YuE2GenerateSemantic(io.ComfyNode):
             node_id="YuE2GenerateSemantic",
             display_name="YuE2 Generate Semantic",
             category="audio/generation/yue2",
-            description="Generates semantic music tokens and standard ComfyUI conditioning for BasicGuider.",
+            description="Uses YuE2's autoregressive language model to generate semantic music tokens, then exposes standard ComfyUI CONDITIONING for BasicGuider.",
             inputs=[
-                YuE2Runtime.Input("runtime"),
-                YuE2Plan.Input("plan"),
+                YuE2Runtime.Input(
+                    "runtime",
+                    display_name="YuE2 Runtime",
+                    tooltip="Connect the runtime output from YuE2 Model Loader.",
+                ),
+                YuE2Plan.Input(
+                    "plan",
+                    display_name="Song Plan",
+                    tooltip="Connect YuE2 Plan Score directly, or the Edited Song Plan from Plan Editor.",
+                ),
                 io.Float.Input(
                     "temperature",
                     default=1.0,
                     min=0.0,
                     max=5.0,
                     step=0.01,
+                    display_name="Semantic Temperature",
+                    tooltip="Randomness for semantic music-token generation.",
                     advanced=True,
                 ),
                 io.Float.Input(
-                    "top_p", default=0.95, min=0.01, max=1.0, step=0.01, advanced=True
+                    "top_p",
+                    default=0.95,
+                    min=0.01,
+                    max=1.0,
+                    step=0.01,
+                    display_name="Semantic Top P",
+                    tooltip="Nucleus-sampling threshold for semantic tokens.",
+                    advanced=True,
                 ),
-                io.Int.Input("top_k", default=100, min=1, max=10000, advanced=True),
+                io.Int.Input(
+                    "top_k",
+                    default=100,
+                    min=1,
+                    max=10000,
+                    display_name="Semantic Top K",
+                    tooltip="Top-k sampling limit for semantic tokens.",
+                    advanced=True,
+                ),
                 io.Float.Input(
                     "repetition_penalty",
                     default=1.2,
                     min=0.01,
                     max=10.0,
                     step=0.01,
+                    display_name="Semantic Repetition Penalty",
+                    tooltip="Discourages repeated semantic-token patterns.",
                     advanced=True,
                 ),
                 io.Int.Input(
-                    "penalty_window", default=50, min=1, max=100, advanced=True
+                    "penalty_window",
+                    default=50,
+                    min=1,
+                    max=100,
+                    display_name="Semantic Penalty Window",
+                    tooltip="Recent-token window used by the semantic repetition penalty.",
+                    advanced=True,
                 ),
                 io.Int.Input(
-                    "min_tokens", default=200, min=0, max=24000, advanced=True
+                    "min_tokens",
+                    default=200,
+                    min=0,
+                    max=24000,
+                    display_name="Minimum Semantic Tokens",
+                    tooltip="Minimum semantic sequence length.",
+                    advanced=True,
                 ),
                 io.Int.Input(
-                    "max_tokens", default=9000, min=1, max=24000, advanced=True
+                    "max_tokens",
+                    default=9000,
+                    min=1,
+                    max=24000,
+                    display_name="Maximum Semantic Tokens",
+                    tooltip="Maximum semantic sequence length and generation work limit.",
+                    advanced=True,
                 ),
             ],
             outputs=[
-                io.Conditioning.Output(display_name="conditioning"),
-                YuE2Semantic.Output(display_name="semantic"),
+                io.Conditioning.Output(
+                    display_name="CONDITIONING",
+                    tooltip="Carries YuE2 semantic tokens. Connect it to both BasicGuider and YuE2 Empty Latent.",
+                ),
             ],
         )
 
@@ -445,7 +760,7 @@ class YuE2GenerateSemantic(io.ComfyNode):
             on_token=on_token,
         )
         return io.NodeOutput(
-            [[None, {"yue2_semantic": semantic, "yue2_runtime": runtime}]], semantic
+            [[None, {"yue2_semantic": semantic, "yue2_runtime": runtime}]]
         )
 
 
@@ -456,12 +771,25 @@ class YuE2EmptyLatent(io.ComfyNode):
             node_id="YuE2EmptyLatent",
             display_name="YuE2 Empty Latent",
             category="audio/generation/yue2",
-            inputs=[YuE2Semantic.Input("semantic")],
-            outputs=[io.Latent.Output(display_name="latent")],
+            description="Creates the correctly sized empty YuE2 acoustic LATENT. It reads semantic-token length from YuE2 CONDITIONING and follows the official chunk boundaries.",
+            inputs=[
+                io.Conditioning.Input(
+                    "conditioning",
+                    display_name="YuE2 CONDITIONING",
+                    tooltip="Connect the same CONDITIONING output from YuE2 Generate Semantic that also feeds BasicGuider.",
+                )
+            ],
+            outputs=[
+                io.Latent.Output(
+                    display_name="Empty LATENT",
+                    tooltip="Zero latent with YuE2's native chunk layout for SamplerCustomAdvanced.",
+                )
+            ],
         )
 
     @classmethod
-    def execute(cls, semantic):
+    def execute(cls, conditioning):
+        semantic = _semantic_from_conditioning(conditioning)
         ranges = chunk_ranges(len(semantic.tokens), len(semantic.plan.prefix))
         device = model_management.intermediate_device()
         chunks = [
@@ -476,11 +804,16 @@ class YuE2ExplicitMidpoint(io.ComfyNode):
     def define_schema(cls):
         return io.Schema(
             node_id="YuE2ExplicitMidpoint",
-            display_name="YuE2 Explicit Midpoint",
+            display_name="YuE2 Explicit Midpoint Sampler",
             category="sampling/custom_sampling/samplers",
-            description="YuE2's official chunk-major explicit-midpoint flow solver.",
+            description="Provides YuE2's official chunk-major explicit-midpoint flow solver as a standard ComfyUI SAMPLER.",
             inputs=[],
-            outputs=[io.Sampler.Output(display_name="sampler")],
+            outputs=[
+                io.Sampler.Output(
+                    display_name="SAMPLER",
+                    tooltip="Connect to SamplerCustomAdvanced. This solver preserves YuE2's official integration order.",
+                )
+            ],
         )
 
     @classmethod
@@ -495,9 +828,23 @@ class YuE2LinearSchedule(io.ComfyNode):
             node_id="YuE2LinearSchedule",
             display_name="YuE2 Linear Schedule",
             category="sampling/custom_sampling/schedulers",
-            description="Exact YuE2 flow schedule from 1 to 0, including both endpoints.",
-            inputs=[io.Int.Input("steps", default=32, min=1, max=10000)],
-            outputs=[io.Sigmas.Output(display_name="sigmas")],
+            description="Provides YuE2's exact linear flow schedule from 1 to 0, including both endpoints, as standard ComfyUI SIGMAS.",
+            inputs=[
+                io.Int.Input(
+                    "steps",
+                    default=32,
+                    min=1,
+                    max=10000,
+                    display_name="Sampling Steps",
+                    tooltip="Number of explicit-midpoint integration steps. The official YuE2 default is 32.",
+                )
+            ],
+            outputs=[
+                io.Sigmas.Output(
+                    display_name="SIGMAS",
+                    tooltip="Linear YuE2 flow schedule for SamplerCustomAdvanced.",
+                )
+            ],
         )
 
     @classmethod
@@ -512,13 +859,32 @@ class YuE2Decode(io.ComfyNode):
             node_id="YuE2Decode",
             display_name="YuE2 Decode",
             category="audio/generation/yue2",
-            description="Decodes standard YuE2 LATENT to unnormalized 48 kHz stereo AUDIO.",
+            description="Decodes a sampled YuE2 LATENT into 48 kHz stereo AUDIO while preserving the official YuE2 output-level behavior.",
             inputs=[
-                YuE2Runtime.Input("runtime"),
-                io.Latent.Input("latent"),
-                io.Boolean.Input("full_decode", default=False, advanced=True),
+                YuE2Runtime.Input(
+                    "runtime",
+                    display_name="YuE2 Runtime",
+                    tooltip="Connect the same runtime used by the generation chain.",
+                ),
+                io.Latent.Input(
+                    "latent",
+                    display_name="Sampled LATENT",
+                    tooltip="Connect the output from SamplerCustomAdvanced.",
+                ),
+                io.Boolean.Input(
+                    "full_decode",
+                    default=False,
+                    display_name="Full Decode",
+                    tooltip="Decode the complete latent at once. Disabled uses YuE2's tiled path to reduce peak VRAM.",
+                    advanced=True,
+                ),
             ],
-            outputs=[io.Audio.Output(display_name="audio")],
+            outputs=[
+                io.Audio.Output(
+                    display_name="AUDIO (48 kHz stereo)",
+                    tooltip="Unnormalized YuE2 waveform for ComfyUI audio preview or save nodes.",
+                )
+            ],
         )
 
     @classmethod
@@ -536,6 +902,7 @@ class YuE2Extension(ComfyExtension):
         return [
             YuE2ModelLoader,
             YuE2PlanScore,
+            YuE2PlanEditor,
             YuE2GenerateSemantic,
             YuE2EmptyLatent,
             YuE2ExplicitMidpoint,

@@ -1,7 +1,7 @@
 {
   "id": "2950a45d-49cb-4a55-8ce0-0b57dcb1e044",
   "revision": 0,
-  "last_node_id": 11,
+  "last_node_id": 16,
   "last_link_id": 14,
   "nodes": [
     {
@@ -74,6 +74,7 @@
     {
       "id": 2,
       "type": "YuE2PlanScore",
+      "title": "YuE2 Plan Score — Style / Lyrics / ABC Score",
       "pos": [
         410,
         0
@@ -94,7 +95,7 @@
       ],
       "outputs": [
         {
-          "name": "plan",
+          "name": "Song Plan",
           "type": "YUE2_PLAN",
           "links": [
             5
@@ -102,7 +103,7 @@
           "slot_index": 0
         },
         {
-          "name": "ABC score",
+          "name": "ABC Score (text preview/export)",
           "type": "STRING",
           "links": null,
           "slot_index": 1
@@ -175,17 +176,10 @@
           "name": "conditioning",
           "type": "CONDITIONING",
           "links": [
-            6
-          ],
-          "slot_index": 0
-        },
-        {
-          "name": "semantic",
-          "type": "YUE2_SEMANTIC",
-          "links": [
+            6,
             7
           ],
-          "slot_index": 1
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -226,8 +220,8 @@
       "mode": 0,
       "inputs": [
         {
-          "name": "semantic",
-          "type": "YUE2_SEMANTIC",
+          "name": "conditioning",
+          "type": "CONDITIONING",
           "link": 7
         }
       ],
@@ -545,6 +539,126 @@
         "filename_prefix": "audio/yue2_fp8_text_to_song",
         "format": "flac"
       }
+    },
+    {
+      "id": 12,
+      "type": "Note",
+      "pos": [
+        0,
+        -190
+      ],
+      "size": [
+        350,
+        145
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Model Loader — setup",
+      "properties": {},
+      "widgets_values": [
+        "Choose the weight source, model/VAE path, precision and device here. Hugging Face weights download on first use; ComfyUI manages caching, GPU loading and offload."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
+    },
+    {
+      "id": 13,
+      "type": "Note",
+      "pos": [
+        410,
+        -215
+      ],
+      "size": [
+        390,
+        170
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Plan Score — inputs",
+      "properties": {},
+      "widgets_values": [
+        "Style and Lyrics define the song. Score Planning full/melody generates ABC when the ABC field is blank; supplied ABC preserves musical structure for cover or rearrangement. The ABC text output is only for preview/export because Song Plan already contains it."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
+    },
+    {
+      "id": 14,
+      "type": "Note",
+      "pos": [
+        860,
+        -215
+      ],
+      "size": [
+        500,
+        170
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Generate Semantic — conditioning",
+      "properties": {},
+      "widgets_values": [
+        "This node generates discrete semantic music tokens with YuE2's autoregressive model. Its single CONDITIONING output carries those tokens: connect it to both BasicGuider and YuE2 Empty Latent. Empty Latent reads only their length to allocate the correct acoustic latent shape."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
+    },
+    {
+      "id": 15,
+      "type": "Note",
+      "pos": [
+        1160,
+        720
+      ],
+      "size": [
+        420,
+        125
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Linear Schedule — steps",
+      "properties": {},
+      "widgets_values": [
+        "Sampling Steps controls the number of flow-matching denoising evaluations. The schedule follows YuE2 training time from 1 to 0 and is intended for SamplerCustomAdvanced."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
+    },
+    {
+      "id": 16,
+      "type": "Note",
+      "pos": [
+        1940,
+        -190
+      ],
+      "size": [
+        420,
+        145
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YuE2 Decode — audio",
+      "properties": {},
+      "widgets_values": [
+        "Decodes sampled YuE2 acoustic latents to 48 kHz stereo AUDIO. Full Decode keeps the official full-sequence behavior and loudness; disable it only when reduced-memory chunked decoding is needed."
+      ],
+      "color": "#243447",
+      "bgcolor": "#152536"
     }
   ],
   "links": [
@@ -599,10 +713,10 @@
     [
       7,
       3,
-      1,
+      0,
       4,
       0,
-      "YUE2_SEMANTIC"
+      "CONDITIONING"
     ],
     [
       8,
