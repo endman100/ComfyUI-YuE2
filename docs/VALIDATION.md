@@ -58,6 +58,8 @@ The acceptance rule was defined as exact tensor equality at the latent and raw f
 
 ## Results
 
+The original five-case suite below intentionally uses small semantic-token caps so it can be rerun as a fast integration regression. Those files test numerical parity, but their 3.84–8.00 second outputs are not used as README quality samples.
+
 | Case | Coverage | Tokens | Decode | Duration | Latent max abs / RMSE | Audio max abs / RMSE | Result |
 | --- | --- | ---: | --- | ---: | --- | --- | --- |
 | `01_pop_vocal_seed_123` | Vocal pop, `cot=off`, seed 123 | 200 | Tiled | 7.9987 s | `0 / 0` | `0 / 0` | Pass |
@@ -67,6 +69,18 @@ The acceptance rule was defined as exact tensor equality at the latent and raw f
 | `05_supplied_abc_melody_seed_314159` | Supplied ABC rearrangement, `cot=melody` | 96 | Full | 3.8387 s | `0 / 0` | `0 / 0` | Pass |
 
 Result: **5/5 passed**. The complete run took 103.80 seconds including initial loading.
+
+### Default-length listening run
+
+The README players use a second five-case run with complete prompts and YuE2's native semantic defaults: `min_tokens=200`, `max_tokens=9000`. Every case emitted the music-end token before the 9000-token ceiling, so none was truncated. Official and ComfyUI paths again matched exactly at both latent and raw float32 audio boundaries.
+
+| Case | Mode | Semantic tokens | Duration | Latent / audio equality |
+| --- | --- | ---: | ---: | --- |
+| Official `City Lights` prompt | Generated full ABC | 1,449 | 57.96 s | Exact / exact |
+| Electronic instrumental | `off` | 4,575 | 183.00 s | Exact / exact |
+| Rock vocal | `off` | 1,738 | 69.52 s | Exact / exact |
+| Cinematic folk ballad | Generated full ABC | 2,572 | 102.88 s | Exact / exact |
+| Supplied eight-bar ABC melody | `melody` | 1,672 | 66.88 s | Exact / exact |
 
 ## Artifacts
 
@@ -78,7 +92,7 @@ Result: **5/5 passed**. The complete run took 103.80 seconds including initial l
 | `04_auto_abc_full_seed_42` | [WAV](../validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/official.wav) | [WAV](../validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/comfyui.wav) | [WAV](../validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/difference.wav) | [JSON](../validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/report.json) | `8593756d3d9441ecc5e8a550f0e2acc92c8bcfc48d6f05527060b33fd33be8a1` |
 | `05_supplied_abc_melody_seed_314159` | [WAV](../validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/official.wav) | [WAV](../validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/comfyui.wav) | [WAV](../validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/difference.wav) | [JSON](../validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/report.json) | `9cac2dd1b0ef47a4fa189504d9e14bd22dbb1ed93c0babb828a4f447c4c93543` |
 
-The aggregate report is [`summary.json`](../validation_outputs/yue2_parity_5cases/summary.json). The MP4 players in the project README are delivery previews encoded from the ComfyUI WAVs; they are not comparison inputs.
+The aggregate fast-regression report is [`summary.json`](../validation_outputs/yue2_parity_5cases/summary.json). The README MP4 files are listening copies of the separately generated Official and ComfyUI WAVs. Their small H.264 waveform track fills GitHub's otherwise blank audio-only video area; the waveform is presentation only and is not a comparison input.
 
 ## Reproduce
 
@@ -87,6 +101,7 @@ From the repository root in the configured ComfyUI Python environment:
 ```powershell
 python -m pytest -q
 python tests/integration_parity.py
+python tests/integration_listening_parity.py
 ```
 
-The recorded local unit run passes 26 tests with two third-party SWIG deprecation warnings. The integration run requires the pinned model snapshots and a supported CUDA device. Newly generated artifacts are written to `ComfyUI/output/yue2_parity_5cases/<case>/`.
+The recorded local unit run passes 26 tests with two third-party SWIG deprecation warnings. Both integration runs require the pinned model snapshots and a supported CUDA device. The fast artifacts are written to `ComfyUI/output/yue2_parity_5cases/<case>/`; the default-length artifacts are written to `ComfyUI/output/yue2_listening_parity_5cases/<case>/`.

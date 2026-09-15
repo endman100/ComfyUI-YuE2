@@ -2,6 +2,7 @@
 tests/
 tools/
 validation_outputs/
+docs/assets/audio_comparisons/
 __pycache__/
 *.pyc
 .pytest_cache/
