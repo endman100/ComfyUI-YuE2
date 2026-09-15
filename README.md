@@ -1,43 +1,3 @@
-
-
-https://github.com/user-attachments/assets/fa2e322f-af92-4839-8dd0-bcf1b74bd7c0
-
-
-
-https://github.com/user-attachments/assets/f7a6e844-901b-4c32-804d-05f9b36573b6
-
-
-
-https://github.com/user-attachments/assets/8c7fe8dd-a390-44f8-b79a-b33134365bec
-
-
-
-https://github.com/user-attachments/assets/df99027e-6389-4da3-be08-a36bac5df374
-
-
-
-https://github.com/user-attachments/assets/025a56fc-b991-4add-9f86-4758941f5f4e
-
-
-
-https://github.com/user-attachments/assets/2877d0a2-b503-41d8-8fbf-c032349f7d3d
-
-
-
-https://github.com/user-attachments/assets/6d332e0c-6fee-43f8-abb2-109301789ed2
-
-
-
-https://github.com/user-attachments/assets/463c025b-268a-49d8-8df5-0c18dbde6419
-
-
-
-https://github.com/user-attachments/assets/092ab23c-803d-44fe-8efd-ac1e6d2a7da3
-
-<video src="https://github.com/user-attachments/assets/9413bdbb-a192-4a3c-8b7f-bda0212ff53a" controls width="420" height="54"></video>
-
-https://github.com/user-attachments/assets/9413bdbb-a192-4a3c-8b7f-bda0212ff53a
-
 # ComfyUI-YuE2
 
 Composable ComfyUI V3 nodes for [YuE2-3B](https://huggingface.co/m-a-p/YuE2-3B): generate songs from lyrics and style, create or edit an ABC score, and run YuE2's acoustic flow through native ComfyUI sampling nodes.
@@ -57,12 +17,18 @@ YuE2 editing is score-level regeneration. This integration does not claim wavefo
 
 ## Listen to generated samples
 
-Expand a case, press play, and unmute the speaker once if Chrome starts muted. Each player contains the **ComfyUI graph output**, transcoded from WAV to AAC-in-MP4 only so GitHub renders inline playback. In all five matched cases, the official pipeline WAV and ComfyUI WAV are sample-identical; parity metrics use the original 48 kHz stereo WAV arrays, not the listening transcode.
+Each case has separate **Official pipeline** and **ComfyUI node** players. The samples are 48 kHz stereo AAC audio with no video track; the MP4 container is only used because GitHub embeds it in README files. Chrome may start the controls muted. The linked WAV files are the lossless validation outputs used for parity metrics.
 
 <details open>
 <summary><strong>▶ 01 · Pop vocal · cot=off · seed 123</strong></summary>
 
-https://github.com/user-attachments/assets/0f4e96ba-9da5-406c-a2f6-6693086bdbab
+**Official pipeline**
+
+https://github.com/user-attachments/assets/9413bdbb-a192-4a3c-8b7f-bda0212ff53a
+
+**ComfyUI node**
+
+https://github.com/user-attachments/assets/092ab23c-803d-44fe-8efd-ac1e6d2a7da3
 
 [Official WAV](validation_outputs/yue2_parity_5cases/01_pop_vocal_seed_123/official.wav) · [ComfyUI WAV](validation_outputs/yue2_parity_5cases/01_pop_vocal_seed_123/comfyui.wav) · [Difference](validation_outputs/yue2_parity_5cases/01_pop_vocal_seed_123/difference.wav) · [Metrics](validation_outputs/yue2_parity_5cases/01_pop_vocal_seed_123/report.json)
 
@@ -71,7 +37,13 @@ https://github.com/user-attachments/assets/0f4e96ba-9da5-406c-a2f6-6693086bdbab
 <details>
 <summary><strong>▶ 02 · Electronic instrumental · seed 2026</strong></summary>
 
-https://github.com/user-attachments/assets/53aa49fb-9e69-402e-bffc-84991615f02d
+**Official pipeline**
+
+https://github.com/user-attachments/assets/463c025b-268a-49d8-8df5-0c18dbde6419
+
+**ComfyUI node**
+
+https://github.com/user-attachments/assets/6d332e0c-6fee-43f8-abb2-109301789ed2
 
 [Official WAV](validation_outputs/yue2_parity_5cases/02_electronic_instrumental_seed_2026/official.wav) · [ComfyUI WAV](validation_outputs/yue2_parity_5cases/02_electronic_instrumental_seed_2026/comfyui.wav) · [Difference](validation_outputs/yue2_parity_5cases/02_electronic_instrumental_seed_2026/difference.wav) · [Metrics](validation_outputs/yue2_parity_5cases/02_electronic_instrumental_seed_2026/report.json)
 
@@ -80,7 +52,13 @@ https://github.com/user-attachments/assets/53aa49fb-9e69-402e-bffc-84991615f02d
 <details>
 <summary><strong>▶ 03 · Rock vocal · high-temperature semantic sampling · seed 987654</strong></summary>
 
-https://github.com/user-attachments/assets/b6bd61dc-2c91-45de-9089-0bdd89cd3ac9
+**Official pipeline**
+
+https://github.com/user-attachments/assets/2877d0a2-b503-41d8-8fbf-c032349f7d3d
+
+**ComfyUI node**
+
+https://github.com/user-attachments/assets/025a56fc-b991-4add-9f86-4758941f5f4e
 
 [Official WAV](validation_outputs/yue2_parity_5cases/03_rock_vocal_seed_987654/official.wav) · [ComfyUI WAV](validation_outputs/yue2_parity_5cases/03_rock_vocal_seed_987654/comfyui.wav) · [Difference](validation_outputs/yue2_parity_5cases/03_rock_vocal_seed_987654/difference.wav) · [Metrics](validation_outputs/yue2_parity_5cases/03_rock_vocal_seed_987654/report.json)
 
@@ -89,7 +67,13 @@ https://github.com/user-attachments/assets/b6bd61dc-2c91-45de-9089-0bdd89cd3ac9
 <details>
 <summary><strong>▶ 04 · Automatically planned full ABC score · seed 42</strong></summary>
 
-https://github.com/user-attachments/assets/be9e411c-2714-4eba-8d24-8b98f3fb1d89
+**Official pipeline**
+
+https://github.com/user-attachments/assets/df99027e-6389-4da3-be08-a36bac5df374
+
+**ComfyUI node**
+
+https://github.com/user-attachments/assets/8c7fe8dd-a390-44f8-b79a-b33134365bec
 
 [Official WAV](validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/official.wav) · [ComfyUI WAV](validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/comfyui.wav) · [Difference](validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/difference.wav) · [Metrics](validation_outputs/yue2_parity_5cases/04_auto_abc_full_seed_42/report.json)
 
@@ -98,7 +82,13 @@ https://github.com/user-attachments/assets/be9e411c-2714-4eba-8d24-8b98f3fb1d89
 <details>
 <summary><strong>▶ 05 · Supplied ABC melody rearrangement · seed 314159</strong></summary>
 
-https://github.com/user-attachments/assets/0f2b2003-18bf-4d72-9816-aa50dd07395b
+**Official pipeline**
+
+https://github.com/user-attachments/assets/f7a6e844-901b-4c32-804d-05f9b36573b6
+
+**ComfyUI node**
+
+https://github.com/user-attachments/assets/fa2e322f-af92-4839-8dd0-bcf1b74bd7c0
 
 [Official WAV](validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/official.wav) · [ComfyUI WAV](validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/comfyui.wav) · [Difference](validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/difference.wav) · [Metrics](validation_outputs/yue2_parity_5cases/05_supplied_abc_melody_seed_314159/report.json)
 
